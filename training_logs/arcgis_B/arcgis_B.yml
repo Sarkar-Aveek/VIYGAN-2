@@ -1,0 +1,187 @@
+# GENERATE TIME: Sat Sep 19 13:06:20 2026
+# CMD:
+# train.py -opt configs/arcgis_B.yml
+
+# Model 1, run B: ArcGIS colours with a structure focus. Identical to arcgis_A.yml except two lines:
+#   GAN weight 0.1 -> 0.05  (the GAN term is what invents plausible-but-wrong texture)
+#   grad_opt 0 -> 0.5       (L1 on Sobel gradients: rewards edges in the right place, ignores colour and flat areas)
+# pipeline.py keeps B over A only if B's edge-F1 is >= 0.02 higher and its LPIPS is not >= 0.01 worse.
+#   python train.py -opt configs/arcgis_B.yml
+
+name: arcgis_B
+model_type: SSRESRGANModel
+scale: 4
+num_gpu: 1
+manual_seed: 0
+
+# Sharpened (USM) target for the L1 and perceptual losses, as in Real-ESRGAN
+l1_gt_usm: True
+percep_gt_usm: True
+gan_gt_usm: False
+
+# The discriminator also sees the 8 LR frames (upsampled to 128 px): 3 + 24 = 27 input channels
+feed_disc_lr: True
+
+
+# ============================================================
+# DATA (built by collectors/build_training_data.py)
+# ============================================================
+datasets:
+  train:
+    name: india_l2a_train
+    type: S2ArcGISDataset
+    sentinel2_path: ./data/training/train/sentinel2     # {tile}/tci.png, 8 L2A frames
+    hr_path: ./data/training/train/arcgis               # {tile}/rgb.png
+    n_s2_images: 8
+    preload: false
+    augment: true           # same random flip / 90-degree rotation for input and target
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 12
+    dataset_enlarge_ratio: 1
+
+  val:
+    name: india_l2a_val
+    type: S2ArcGISDataset
+    sentinel2_path: ./data/training/val/sentinel2
+    hr_path: ./data/training/val/arcgis
+    n_s2_images: 8
+    max_tiles: 50           # the whole val split (50 tiles); fixed frames, so every validation is comparable
+    random_frames: false
+    preload: true
+    use_shuffle: false
+    num_worker_per_gpu: 2
+    batch_size_per_gpu: 1
+
+
+# ============================================================
+# NETWORKS
+# ============================================================
+network_g:
+  type: SSR_RRDBNet
+  num_in_ch: 24
+  num_out_ch: 3
+  num_feat: 64
+  num_block: 23
+  num_grow_ch: 32
+
+network_d:
+  type: SSR_UNetDiscriminatorSN
+  num_in_ch: 27
+  num_feat: 64
+  skip_connection: true
+
+path:
+  pretrain_network_g: ./weights/india_finetune_net_g_20000.pth
+  param_key_g: params_ema
+  strict_load_g: true
+  pretrain_network_d: ./weights/india_finetune_net_d_20000.pth
+  param_key_d: params
+  strict_load_d: true
+  resume_state: ~
+
+
+# ============================================================
+# TRAINING
+# ============================================================
+train:
+  ema_decay: 0.999
+
+  optim_g:
+    type: Adam
+    lr: !!float 5e-5
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [19200]      # halve at 80%
+    gamma: 0.5
+
+  total_iter: 24000
+  warmup_iter: -1
+
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+  perceptual_opt:
+    type: PerceptualLoss
+    layer_weights:
+      'conv1_2': 0.1
+      'conv2_2': 0.1
+      'conv3_4': 1
+      'conv4_4': 1
+      'conv5_4': 1
+    vgg_type: vgg19
+    use_input_norm: true
+    perceptual_weight: !!float 1.0
+    style_weight: 0
+    range_norm: false
+    criterion: l1
+
+  gan_opt:
+    type: GANLoss
+    gan_type: vanilla
+    real_label_val: 1.0
+    fake_label_val: 0.0
+    loss_weight: !!float 5e-2
+
+  grad_opt:
+    loss_weight: 0.5
+
+  net_d_iters: 1
+  net_d_init_iters: 0       # the discriminator is pretrained too
+
+
+# ============================================================
+# VALIDATION (every 6000 iterations, 50 tiles; the curves are in experiments/<name>/val.csv)
+# ============================================================
+val:
+  val_freq: !!float 6000
+  save_img: false
+  metrics:
+    cpsnr:
+      type: calculate_cpsnr
+      crop_border: 4
+    psnr:
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: false
+    lpips:
+      type: calculate_lpips
+      lpips_model: alexnet
+      better: lower
+    edge_f1:
+      type: calculate_edge_f1
+      crop_border: 4
+    grad_corr:
+      type: calculate_grad_corr
+      crop_border: 4
+
+
+# ============================================================
+# LOGGING (every value also goes to experiments/<name>/losses.csv, every 200 iterations)
+# ============================================================
+logger:
+  print_freq: 200
+  save_checkpoint_freq: !!float 6000
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29500

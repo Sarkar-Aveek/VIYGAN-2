@@ -1,0 +1,200 @@
+# GENERATE TIME: Mon Sep 21 02:06:38 2026
+# CMD:
+# train.py -opt configs/s2colour.yml
+
+# Model 3: Sentinel-2 colours, from run B, with the colours locked and the losses blind to colour (2026-09-20).
+#   input_lowpass          inside the network, every 4x4 block's colour is replaced by the Sentinel input's, so the
+#                          colours are right by construction and the model only ever learns detail
+#   colour_invariant_loss  the target is shifted to the output's per-channel mean before L1/perceptual
+#   disc_highpass          the discriminator sees only the high frequencies, so it judges texture, not colour
+# So every bit of training goes into "what texture belongs at these Sentinel colours".
+# Start (2026-09-21 continuation): the 18k checkpoint of the first locked run (experiments/s2colour_24k_v1),
+# picked over its 24k because the learning rate had already halved at 19.2k there and validation was still
+# improving (LPIPS 0.214 -> 0.201 -> 0.192 -> 0.185, edge-F1 0.644 -> 0.662 -> 0.670 -> 0.672). Two more epochs
+# at the full learning rate, with that run's discriminator (already trained on high frequencies, so no warm-up).
+# Tried and worse: training without the lock against a recoloured target (2026-09-20) just reproduced model 2
+# (LPIPS 0.3005 vs 0.3008, edge-F1 0.5184 vs 0.5246), while the locked recipe reached LPIPS 0.225 / edge-F1 0.639
+# by 12k. Grain on dark scenes is handled after the network (esrgan.networks.colour_transfer), not in training.
+#   python train.py -opt configs/s2colour.yml        (pipeline.py runs it)
+
+name: s2colour
+colour_invariant_loss: true
+disc_highpass: true
+model_type: SSRESRGANModel
+scale: 4
+num_gpu: 1
+manual_seed: 0
+
+# Sharpened (USM) target for the L1 and perceptual losses, as in Real-ESRGAN
+l1_gt_usm: True
+percep_gt_usm: True
+gan_gt_usm: False
+
+# The discriminator also sees the 8 LR frames (upsampled to 128 px): 3 + 24 = 27 input channels
+feed_disc_lr: True
+
+
+# ============================================================
+# DATA (built by collectors/build_training_data.py)
+# ============================================================
+datasets:
+  train:
+    name: india_l2a_train
+    type: S2ArcGISDataset
+    sentinel2_path: ./data/training/train/sentinel2     # {tile}/tci.png, 8 L2A frames
+    hr_path: ./data/training/train/arcgis               # {tile}/rgb.png
+    n_s2_images: 8
+    preload: false
+    augment: true           # same random flip / 90-degree rotation for input and target
+    use_shuffle: true
+    num_worker_per_gpu: 3      # 3, not 6: each spawned worker commits ~2.5 GB, and the commit limit
+                               # (not RAM) is what fails, as 'paging file too small' on 2026-09-21
+    batch_size_per_gpu: 12
+    dataset_enlarge_ratio: 1
+
+  val:
+    name: india_l2a_val
+    type: S2ArcGISDataset
+    sentinel2_path: ./data/training/val/sentinel2
+    hr_path: ./data/training/val/arcgis
+    n_s2_images: 8
+    max_tiles: 50           # the whole val split (50 tiles); fixed frames, so every validation is comparable
+    random_frames: false
+    preload: true
+    use_shuffle: false
+    num_worker_per_gpu: 1
+    batch_size_per_gpu: 1
+
+
+# ============================================================
+# NETWORKS
+# ============================================================
+network_g:
+  type: SSR_RRDBNet
+  num_in_ch: 24
+  num_out_ch: 3
+  num_feat: 64
+  num_block: 23
+  num_grow_ch: 32
+  input_lowpass: true
+
+network_d:
+  type: SSR_UNetDiscriminatorSN
+  num_in_ch: 27
+  num_feat: 64
+  skip_connection: true
+
+path:
+  pretrain_network_g: ./experiments/s2colour_24k_v1/models/net_g_18000.pth
+  param_key_g: params_ema
+  strict_load_g: true
+  pretrain_network_d: ./experiments/s2colour_24k_v1/models/net_d_18000.pth
+  param_key_d: params
+  strict_load_d: true
+  resume_state: ~
+
+
+# ============================================================
+# TRAINING
+# ============================================================
+train:
+  ema_decay: 0.999
+
+  optim_g:
+    type: Adam
+    lr: !!float 5e-5
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [13860]      # halve at 80%
+    gamma: 0.5
+
+  total_iter: 17322        # 2 epochs of 103,936 tiles at batch 12
+  warmup_iter: -1
+
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+  perceptual_opt:
+    type: PerceptualLoss
+    layer_weights:
+      'conv1_2': 0.1
+      'conv2_2': 0.1
+      'conv3_4': 1
+      'conv4_4': 1
+      'conv5_4': 1
+    vgg_type: vgg19
+    use_input_norm: true
+    perceptual_weight: !!float 1.0
+    style_weight: 0
+    range_norm: false
+    criterion: l1
+
+  gan_opt:
+    type: GANLoss
+    gan_type: vanilla
+    real_label_val: 1.0
+    fake_label_val: 0.0
+    loss_weight: !!float 5e-2
+
+  grad_opt:
+    loss_weight: 0.5
+
+  net_d_iters: 1
+  net_d_init_iters: 0       # the discriminator carries on from the same run
+
+
+# ============================================================
+# VALIDATION (every 6000 iterations, 50 tiles; the curves are in experiments/<name>/val.csv)
+# ============================================================
+val:
+  val_freq: !!float 5774   # 3 validations: 2/3 epoch apart
+  save_img: true          # writes the 50 validation tiles to experiments/<name>/visualization/<tile>/<tile>_<iter>.png
+  metrics:
+    cpsnr:
+      type: calculate_cpsnr
+      crop_border: 4
+    psnr:
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: false
+    lpips:
+      type: calculate_lpips
+      lpips_model: alexnet
+      better: lower
+    edge_f1:
+      type: calculate_edge_f1
+      crop_border: 4
+    grad_corr:
+      type: calculate_grad_corr
+      crop_border: 4
+
+
+# ============================================================
+# LOGGING (every value also goes to experiments/<name>/losses.csv, every 200 iterations)
+# ============================================================
+logger:
+  print_freq: 200
+  save_checkpoint_freq: !!float 5774
+  use_tb_logger: false     # the curves are in experiments/<name>/losses.csv and val.csv
+  wandb:
+    project: ~
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29500

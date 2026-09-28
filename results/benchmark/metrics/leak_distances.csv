@@ -1,0 +1,8 @@
+test_place,kind,nearest_training_place,centre_distance_km,nearest_trained_tile_km
+hyderabad_charminar,urban,latur_agri,233.7,222.7
+varanasi_ghats,urban,patna,215.9,205.5
+thanjavur_paddy,farmland,madurai,146.9,135.5
+barmer_desert,desert,jaisalmer_barren,138.0,130.3
+wayanad_forest,forest,coimbatore,116.6,105.2
+shillong_hills,hills,guwahati,64.8,54.3
+lachung_sikkim,snow,darjeeling_tea,86.8,76.3

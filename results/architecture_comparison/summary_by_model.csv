@@ -1,0 +1,21 @@
+model,input,sites,lpips,cpsnr,psnr,ssim,lpips_rank_per_site
+india_finetune_8,8 L1C frames,4,0.1708,18.18,17.371,0.4451,1 1 1 1
+satlas_esrgan_2_ft_A,"2 L1C frames; L1+percep+GAN, D sees LR",4,0.2111,16.919,16.0994,0.3494,2 2 6 3
+satlas_esrgan_8_ft_A,"8 L1C frames; L1+percep+GAN, D sees LR",4,0.2169,17.3383,16.3039,0.3766,4 4 8 2
+satlas_esrgan_1_ft_A,"1 L1C frame; L1+percep+GAN, D sees LR",4,0.2184,16.9895,15.9754,0.3085,5 3 7 4
+realesrgan_x4plus_ft_B,"L1C median of 8; L1+percep+GAN, D image only",4,0.2526,17.8462,16.8152,0.3942,3 8 2 5
+realesrgan_x4plus_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",4,0.2606,17.7986,16.8485,0.4022,6 7 3 6
+swinir_l_real_x4_ft_B,"L1C median of 8; L1+percep+GAN, D image only",4,0.2804,18.0149,17.0444,0.3872,7 9 4 7
+swinir_l_real_x4_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",4,0.2865,18.0195,17.0797,0.3889,8 10 5 8
+satlas_esrgan_2,2 L1C frames,4,0.2991,15.799,14.9678,0.261,9 5 11 9
+satlas_esrgan_1,1 L1C frame,4,0.336,15.9261,14.6693,0.1915,10 6 10 10
+ldsr_s2,1 L2A RGBN,4,0.4149,17.9014,17.0365,0.3263,12 11 9 11
+swin2_mose_x2_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",4,0.4838,18.5871,17.8087,0.3943,14 12 14 14
+realesrgan_x4plus,L1C median of 8,4,0.4864,17.0824,15.3435,0.2424,11 17 16 12
+sen2sr_lite_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",4,0.4945,17.9768,17.0674,0.3401,15 13 12 15
+swinir_l_real_x4,L1C median of 8,4,0.5096,17.297,15.7172,0.2558,13 18 18 13
+sen2sr_lite_ft_B,1 L2A RGBN; L1 only,4,0.5275,17.9937,17.1389,0.3432,17 14 13 16
+sen2sr_lite,1 L2A RGBN,4,0.5458,17.9369,17.0291,0.3292,18 16 15 17
+swin2_mose_x2_ft_B,1 L2A RGBN; MSE + 0.2 MoE,4,0.5528,18.5578,17.9646,0.3731,16 15 17 18
+swin2_mose_x2,1 L2A RGBN,4,0.6152,18.0301,17.1647,0.3153,19 19 19 19
+bicubic,L1C median of 8,4,0.6748,17.296,15.7347,0.2358,20 20 20 20

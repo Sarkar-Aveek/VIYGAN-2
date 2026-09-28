@@ -1,0 +1,81 @@
+site,model,input,psnr,ssim,cpsnr,lpips,seconds
+hyderabad_charminar,bicubic,L1C median of 8,16.0405,0.1949,16.636,0.7103,0.0
+hyderabad_charminar,realesrgan_x4plus,L1C median of 8,15.5623,0.221,16.3492,0.4661,1.1
+hyderabad_charminar,swinir_l_real_x4,L1C median of 8,15.9484,0.2432,16.7489,0.4979,1.7
+hyderabad_charminar,satlas_esrgan_1,1 L1C frame,13.9893,0.1569,14.9966,0.3419,1.1
+hyderabad_charminar,satlas_esrgan_2,2 L1C frames,14.4229,0.2529,14.7174,0.2865,1.2
+hyderabad_charminar,india_finetune_8,8 L1C frames,17.3124,0.4458,17.595,0.1673,1.1
+hyderabad_charminar,sen2sr_lite,1 L2A RGBN,16.7149,0.2835,17.5443,0.6192,2.5
+hyderabad_charminar,ldsr_s2,1 L2A RGBN,16.6713,0.2842,17.4959,0.4772,27.7
+hyderabad_charminar,swin2_mose_x2,1 L2A RGBN,16.3018,0.2584,17.2674,0.6837,2.6
+hyderabad_charminar,realesrgan_x4plus_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",16.9713,0.4259,17.3133,0.2245,1.0
+hyderabad_charminar,realesrgan_x4plus_ft_B,"L1C median of 8; L1+percep+GAN, D image only",16.9721,0.4113,17.3602,0.2069,1.0
+hyderabad_charminar,swinir_l_real_x4_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",17.5258,0.4193,17.7939,0.2428,1.7
+hyderabad_charminar,swinir_l_real_x4_ft_B,"L1C median of 8; L1+percep+GAN, D image only",17.3609,0.4143,17.7576,0.2394,1.7
+hyderabad_charminar,satlas_esrgan_1_ft_A,"1 L1C frame; L1+percep+GAN, D sees LR",16.0874,0.3477,16.1777,0.2197,1.0
+hyderabad_charminar,satlas_esrgan_2_ft_A,"2 L1C frames; L1+percep+GAN, D sees LR",15.5145,0.351,15.914,0.2058,1.4
+hyderabad_charminar,satlas_esrgan_8_ft_A,"8 L1C frames; L1+percep+GAN, D sees LR",16.547,0.4034,16.8869,0.2091,1.1
+hyderabad_charminar,sen2sr_lite_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",16.8207,0.3035,17.674,0.5555,0.3
+hyderabad_charminar,sen2sr_lite_ft_B,1 L2A RGBN; L1 only,16.8328,0.3023,17.6856,0.5956,0.4
+hyderabad_charminar,swin2_mose_x2_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",17.7224,0.3739,17.9723,0.5289,1.8
+hyderabad_charminar,swin2_mose_x2_ft_B,1 L2A RGBN; MSE + 0.2 MoE,17.7687,0.3507,17.9933,0.5861,1.8
+varanasi_ghats,bicubic,L1C median of 8,14.1404,0.1802,16.7435,0.7155,0.0
+varanasi_ghats,realesrgan_x4plus,L1C median of 8,13.8272,0.1808,16.6001,0.6258,0.9
+varanasi_ghats,swinir_l_real_x4,L1C median of 8,14.0954,0.1822,16.5994,0.6296,1.6
+varanasi_ghats,satlas_esrgan_1,1 L1C frame,14.7797,0.1811,16.2509,0.364,1.1
+varanasi_ghats,satlas_esrgan_2,2 L1C frames,15.2091,0.2783,16.0706,0.2965,1.4
+varanasi_ghats,india_finetune_8,8 L1C frames,17.1293,0.3989,18.3639,0.1951,1.1
+varanasi_ghats,sen2sr_lite,1 L2A RGBN,17.261,0.2535,17.7683,0.6178,0.0
+varanasi_ghats,ldsr_s2,1 L2A RGBN,17.2744,0.2579,17.768,0.4963,22.9
+varanasi_ghats,swin2_mose_x2,1 L2A RGBN,16.7463,0.2132,17.534,0.6426,1.2
+varanasi_ghats,realesrgan_x4plus_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",16.4094,0.3016,17.7494,0.3833,1.2
+varanasi_ghats,realesrgan_x4plus_ft_B,"L1C median of 8; L1+percep+GAN, D image only",16.0983,0.2939,17.722,0.3916,1.4
+varanasi_ghats,swinir_l_real_x4_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",16.106,0.2686,17.5404,0.4435,2.0
+varanasi_ghats,swinir_l_real_x4_ft_B,"L1C median of 8; L1+percep+GAN, D image only",16.0137,0.2692,17.5364,0.4329,1.6
+varanasi_ghats,satlas_esrgan_1_ft_A,"1 L1C frame; L1+percep+GAN, D sees LR",15.3126,0.2154,17.2506,0.2256,1.4
+varanasi_ghats,satlas_esrgan_2_ft_A,"2 L1C frames; L1+percep+GAN, D sees LR",16.5585,0.3496,17.3868,0.2139,1.0
+varanasi_ghats,satlas_esrgan_8_ft_A,"8 L1C frames; L1+percep+GAN, D sees LR",16.9534,0.3846,18.1593,0.2333,1.0
+varanasi_ghats,sen2sr_lite_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",17.3253,0.2627,17.8341,0.5734,0.4
+varanasi_ghats,sen2sr_lite_ft_B,1 L2A RGBN; L1 only,17.3044,0.2594,17.8182,0.596,0.4
+varanasi_ghats,swin2_mose_x2_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",16.9244,0.2793,18.4289,0.5331,1.9
+varanasi_ghats,swin2_mose_x2_ft_B,1 L2A RGBN; MSE + 0.2 MoE,17.218,0.2639,18.1029,0.6029,1.6
+thanjavur_paddy,bicubic,L1C median of 8,16.7711,0.322,18.5109,0.6296,0.0
+thanjavur_paddy,realesrgan_x4plus,L1C median of 8,16.2503,0.3162,18.2265,0.4657,1.0
+thanjavur_paddy,swinir_l_real_x4,L1C median of 8,16.8924,0.3353,18.5504,0.5085,1.7
+thanjavur_paddy,satlas_esrgan_1,1 L1C frame,15.0677,0.2083,16.4353,0.321,1.0
+thanjavur_paddy,satlas_esrgan_2,2 L1C frames,15.3614,0.2736,16.5289,0.3239,0.9
+thanjavur_paddy,india_finetune_8,8 L1C frames,19.3657,0.5393,19.7268,0.1435,2.3
+thanjavur_paddy,sen2sr_lite,1 L2A RGBN,17.6815,0.4524,18.6199,0.409,0.0
+thanjavur_paddy,ldsr_s2,1 L2A RGBN,17.7417,0.4415,18.5884,0.318,27.0
+thanjavur_paddy,swin2_mose_x2,1 L2A RGBN,18.7932,0.458,19.4461,0.5296,0.5
+thanjavur_paddy,realesrgan_x4plus_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",18.4019,0.5021,19.152,0.2092,1.8
+thanjavur_paddy,realesrgan_x4plus_ft_B,"L1C median of 8; L1+percep+GAN, D image only",18.4334,0.4967,19.2537,0.1978,1.1
+thanjavur_paddy,swinir_l_real_x4_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",18.5312,0.4948,19.3946,0.2239,2.7
+thanjavur_paddy,swinir_l_real_x4_ft_B,"L1C median of 8; L1+percep+GAN, D image only",18.6388,0.4945,19.429,0.2177,1.7
+thanjavur_paddy,satlas_esrgan_1_ft_A,"1 L1C frame; L1+percep+GAN, D sees LR",16.3908,0.3272,17.7296,0.2271,1.2
+thanjavur_paddy,satlas_esrgan_2_ft_A,"2 L1C frames; L1+percep+GAN, D sees LR",16.3882,0.3676,17.6303,0.225,1.0
+thanjavur_paddy,satlas_esrgan_8_ft_A,"8 L1C frames; L1+percep+GAN, D sees LR",16.3074,0.3716,17.9162,0.2277,1.0
+thanjavur_paddy,sen2sr_lite_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",17.672,0.4587,18.5858,0.3577,0.4
+thanjavur_paddy,sen2sr_lite_ft_B,1 L2A RGBN; L1 only,17.8351,0.4676,18.6571,0.3965,0.4
+thanjavur_paddy,swin2_mose_x2_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",19.5236,0.5305,20.001,0.4061,2.2
+thanjavur_paddy,swin2_mose_x2_ft_B,1 L2A RGBN; MSE + 0.2 MoE,19.4816,0.5148,20.0329,0.4765,1.7
+barmer_desert,bicubic,L1C median of 8,15.9867,0.246,17.2937,0.6437,0.0
+barmer_desert,realesrgan_x4plus,L1C median of 8,15.7343,0.2515,17.1536,0.3881,0.8
+barmer_desert,swinir_l_real_x4,L1C median of 8,15.9325,0.2626,17.2894,0.4026,2.5
+barmer_desert,satlas_esrgan_1,1 L1C frame,14.8407,0.2199,16.0215,0.3173,1.1
+barmer_desert,satlas_esrgan_2,2 L1C frames,14.8778,0.239,15.8791,0.2895,1.1
+barmer_desert,india_finetune_8,8 L1C frames,15.6764,0.3964,17.0342,0.1773,1.0
+barmer_desert,sen2sr_lite,1 L2A RGBN,16.459,0.3273,17.8152,0.5371,0.0
+barmer_desert,ldsr_s2,1 L2A RGBN,16.4586,0.3216,17.7532,0.3679,22.8
+barmer_desert,swin2_mose_x2,1 L2A RGBN,16.8176,0.3316,17.8728,0.605,0.5
+barmer_desert,realesrgan_x4plus_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",15.6116,0.3792,16.9795,0.2255,1.1
+barmer_desert,realesrgan_x4plus_ft_B,"L1C median of 8; L1+percep+GAN, D image only",15.7571,0.3749,17.0489,0.2141,1.6
+barmer_desert,swinir_l_real_x4_ft_A,"L1C median of 8; L1+percep+GAN, D sees LR",16.1556,0.373,17.3492,0.236,3.0
+barmer_desert,swinir_l_real_x4_ft_B,"L1C median of 8; L1+percep+GAN, D image only",16.1641,0.3708,17.3365,0.2318,1.7
+barmer_desert,satlas_esrgan_1_ft_A,"1 L1C frame; L1+percep+GAN, D sees LR",16.1109,0.3436,16.8001,0.2012,1.0
+barmer_desert,satlas_esrgan_2_ft_A,"2 L1C frames; L1+percep+GAN, D sees LR",15.9363,0.3295,16.7447,0.1995,1.1
+barmer_desert,satlas_esrgan_8_ft_A,"8 L1C frames; L1+percep+GAN, D sees LR",15.4079,0.3467,16.3906,0.1973,1.0
+barmer_desert,sen2sr_lite_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",16.4515,0.3354,17.8135,0.4914,0.4
+barmer_desert,sen2sr_lite_ft_B,1 L2A RGBN; L1 only,16.5833,0.3434,17.8139,0.5219,0.4
+barmer_desert,swin2_mose_x2_ft_A,"1 L2A RGBN; L1+percep+GAN, D sees LR",17.0642,0.3936,17.9463,0.467,1.9
+barmer_desert,swin2_mose_x2_ft_B,1 L2A RGBN; MSE + 0.2 MoE,17.3901,0.3632,18.1021,0.5458,1.9

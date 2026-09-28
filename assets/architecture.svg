@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1050" width="1200" height="1050" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+    <style>
+      .title { font-size: 21px; font-weight: 600; fill: #111827; }
+      .subtitle { font-size: 14px; fill: #6b7280; }
+      .section { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; fill: #6b7280; }
+      .main { font-size: 15px; fill: #111827; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .muted { font-size: 13px; fill: #9ca3af; font-style: italic; }
+      .same { fill: #f3f4f6; stroke: #9ca3af; stroke-width: 1.2; }
+      .changed { fill: #e3edff; stroke: #3b6fd8; stroke-width: 1.6; }
+      .none { fill: none; stroke: #d1d5db; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .flow { stroke: #6b7280; stroke-width: 1.5; fill: none; }
+      .note { font-size: 13px; fill: #4b5563; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="1050" rx="14" fill="#ffffff"/>
+  <line x1="600" y1="92" x2="600" y2="968" stroke="#e5e7eb" stroke-width="1.5"/>
+
+  <!-- ===================== LEFT: ESRGAN ===================== -->
+  <g text-anchor="middle">
+    <text x="300" y="42" class="title">ESRGAN (Wang et al., 2018)</text>
+    <text x="300" y="66" class="subtitle">single-image super-resolution of photos</text>
+  </g>
+
+  <text x="80" y="106" class="section">GENERATOR</text>
+  <g text-anchor="middle">
+    <rect x="80" y="118" width="440" height="48" rx="8" class="same"/>
+    <text x="300" y="138" class="main">Low-res image</text>
+    <text x="300" y="156" class="sub">3 × H × W</text>
+    <line x1="300" y1="166" x2="300" y2="185" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="186" width="440" height="40" rx="8" class="none"/>
+    <text x="300" y="211" class="muted">one image, nothing to stack</text>
+    <line x1="300" y1="226" x2="300" y2="245" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="246" width="440" height="40" rx="8" class="same"/>
+    <text x="300" y="271" class="main">Conv 3×3 · 3 → 64</text>
+    <line x1="300" y1="286" x2="300" y2="305" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="306" width="440" height="56" rx="8" class="same"/>
+    <text x="300" y="330" class="main">23 × RRDB</text>
+    <text x="300" y="350" class="sub">Residual-in-Residual Dense Blocks · 64 features</text>
+    <line x1="300" y1="362" x2="300" y2="381" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="382" width="440" height="40" rx="8" class="same"/>
+    <text x="300" y="407" class="main">Conv 3×3</text>
+    <line x1="300" y1="422" x2="300" y2="439" class="flow" marker-end="url(#arrow)"/>
+
+    <circle cx="300" cy="452" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="300" y="457" class="main">+</text>
+    <path d="M300,296 H62 V452 H287" class="flow" marker-end="url(#arrow)"/>
+    <text x="54" y="380" class="sub" transform="rotate(-90 54 380)">skip</text>
+    <line x1="300" y1="464" x2="300" y2="483" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="484" width="440" height="48" rx="8" class="same"/>
+    <text x="300" y="504" class="main">2 × [ nearest upsample ×2 → Conv 3×3 → LeakyReLU ]</text>
+    <text x="300" y="522" class="sub">H → 2H → 4H</text>
+    <line x1="300" y1="532" x2="300" y2="551" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="552" width="440" height="40" rx="8" class="same"/>
+    <text x="300" y="577" class="main">Conv 3×3 → LeakyReLU → Conv 3×3 (64 → 3)</text>
+    <line x1="300" y1="592" x2="300" y2="611" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="612" width="440" height="48" rx="8" class="same"/>
+    <text x="300" y="632" class="main">Super-resolved image</text>
+    <text x="300" y="650" class="sub">3 × 4H × 4W</text>
+  </g>
+
+  <text x="80" y="696" class="section">DISCRIMINATOR</text>
+  <g text-anchor="middle">
+    <rect x="80" y="708" width="440" height="68" rx="8" class="same"/>
+    <text x="300" y="730" class="main">VGG-style classifier (conv + batch norm + dense)</text>
+    <text x="300" y="749" class="sub">input: SR or real image · 3 × 128 × 128</text>
+    <text x="300" y="767" class="sub">output: one real/fake score per image</text>
+  </g>
+
+  <text x="80" y="806" class="section">LOSSES</text>
+  <g text-anchor="middle">
+    <rect x="80" y="818" width="440" height="68" rx="8" class="same"/>
+    <text x="300" y="840" class="main">Perceptual (VGG19 conv5_4)</text>
+    <text x="300" y="859" class="sub">+ 0.005 × relativistic GAN</text>
+    <text x="300" y="877" class="sub">+ 0.01 × L1</text>
+  </g>
+
+  <text x="80" y="916" class="section">TRAINING</text>
+  <g text-anchor="middle">
+    <rect x="80" y="928" width="440" height="48" rx="8" class="same"/>
+    <text x="300" y="948" class="main">DIV2K + Flickr2K + OST photos</text>
+    <text x="300" y="966" class="sub">PSNR pre-training, then GAN training from that</text>
+  </g>
+
+  <!-- ===================== RIGHT: OURS ===================== -->
+  <g text-anchor="middle">
+    <text x="900" y="42" class="title">Our model: multi-frame ESRGAN</text>
+    <text x="900" y="66" class="subtitle">Satlas weights, fine-tuned on Sentinel-2 → ArcGIS (India)</text>
+  </g>
+
+  <text x="680" y="106" class="section">GENERATOR · 16.7 M parameters</text>
+  <g text-anchor="middle">
+    <rect x="680" y="118" width="440" height="48" rx="8" class="changed"/>
+    <text x="900" y="138" class="main">8 Sentinel-2 L1C frames from different dates</text>
+    <text x="900" y="156" class="sub">8 × 3 × 32 × 32 (10 m pixels)</text>
+    <line x1="900" y1="166" x2="900" y2="185" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="186" width="440" height="40" rx="8" class="changed"/>
+    <text x="900" y="211" class="main">Stack frames along channels → 24 × 32 × 32</text>
+    <line x1="900" y1="226" x2="900" y2="245" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="246" width="440" height="40" rx="8" class="changed"/>
+    <text x="900" y="271" class="main">Conv 3×3 · 24 → 64</text>
+    <line x1="900" y1="286" x2="900" y2="305" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="306" width="440" height="56" rx="8" class="same"/>
+    <text x="900" y="330" class="main">23 × RRDB</text>
+    <text x="900" y="350" class="sub">Residual-in-Residual Dense Blocks · 64 features</text>
+    <line x1="900" y1="362" x2="900" y2="381" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="382" width="440" height="40" rx="8" class="same"/>
+    <text x="900" y="407" class="main">Conv 3×3</text>
+    <line x1="900" y1="422" x2="900" y2="439" class="flow" marker-end="url(#arrow)"/>
+
+    <circle cx="900" cy="452" r="12" fill="#ffffff" stroke="#6b7280" stroke-width="1.5"/>
+    <text x="900" y="457" class="main">+</text>
+    <path d="M900,296 H662 V452 H887" class="flow" marker-end="url(#arrow)"/>
+    <text x="654" y="380" class="sub" transform="rotate(-90 654 380)">skip</text>
+    <line x1="900" y1="464" x2="900" y2="483" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="484" width="440" height="48" rx="8" class="same"/>
+    <text x="900" y="504" class="main">2 × [ nearest upsample ×2 → Conv 3×3 → LeakyReLU ]</text>
+    <text x="900" y="522" class="sub">32 → 64 → 128 px</text>
+    <line x1="900" y1="532" x2="900" y2="551" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="552" width="440" height="40" rx="8" class="same"/>
+    <text x="900" y="577" class="main">Conv 3×3 → LeakyReLU → Conv 3×3 (64 → 3)</text>
+    <line x1="900" y1="592" x2="900" y2="611" class="flow" marker-end="url(#arrow)"/>
+
+    <rect x="680" y="612" width="440" height="48" rx="8" class="same"/>
+    <text x="900" y="632" class="main">Super-resolved image (ArcGIS-like)</text>
+    <text x="900" y="650" class="sub">3 × 128 × 128 · about 2.2 m pixels</text>
+  </g>
+
+  <text x="680" y="696" class="section">DISCRIMINATOR · 4.4 M parameters</text>
+  <g text-anchor="middle">
+    <rect x="680" y="708" width="440" height="68" rx="8" class="changed"/>
+    <text x="900" y="730" class="main">U-Net with spectral norm (from Real-ESRGAN)</text>
+    <text x="900" y="749" class="sub">input: SR or ArcGIS (3) + the 8 frames upsampled ×4 (24) = 27 ch</text>
+    <text x="900" y="767" class="sub">output: real/fake score for every pixel · 1 × 128 × 128</text>
+  </g>
+
+  <text x="680" y="806" class="section">LOSSES</text>
+  <g text-anchor="middle">
+    <rect x="680" y="818" width="440" height="68" rx="8" class="changed"/>
+    <text x="900" y="840" class="main">1.0 × L1 + 1.0 × perceptual (VGG19, 5 layers)</text>
+    <text x="900" y="859" class="sub">both against a sharpened (unsharp-masked) ground truth</text>
+    <text x="900" y="877" class="sub">+ 0.1 × standard GAN · generator weights averaged (EMA 0.999)</text>
+  </g>
+
+  <text x="680" y="916" class="section">TRAINING</text>
+  <g text-anchor="middle">
+    <rect x="680" y="928" width="440" height="48" rx="8" class="changed"/>
+    <text x="900" y="948" class="main">Start: Satlas weights (Sentinel-2 → US NAIP)</text>
+    <text x="900" y="966" class="sub">fine-tuned 20k iterations on 29,794 India pairs</text>
+  </g>
+
+  <!-- ===================== LEGEND ===================== -->
+  <rect x="80" y="1002" width="22" height="16" rx="4" class="changed"/>
+  <text x="110" y="1015" class="note">changed in our model</text>
+  <rect x="270" y="1002" width="22" height="16" rx="4" class="same"/>
+  <text x="300" y="1015" class="note">same as ESRGAN</text>
+  <text x="1120" y="1015" class="note" text-anchor="end">RRDB = 3 dense blocks of 5 convs, residuals scaled by 0.2 (identical in both)</text>
+</svg>

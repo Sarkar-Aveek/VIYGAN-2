@@ -1,0 +1,11 @@
+model,predictor,pixels,spearman_vs_error,auroc_worst10pct,auroc_within_gradient_deciles
+arcgis_B,sigma,840000,0.184,0.6333,0.5468
+arcgis_B,gradient,840000,0.3157,0.7191,0.5229
+arcgis_B,added,840000,0.062,0.5956,0.5622
+arcgis_B,tile mean sigma vs cn_lpips,2800,-0.1857,,
+arcgis_B,tile mean sigma vs edge_f1,2800,0.7213,,
+s2colour,sigma,840000,0.2108,0.6473,0.5637
+s2colour,gradient,840000,0.3241,0.7229,0.525
+s2colour,added,840000,0.3257,0.7429,0.6755
+s2colour,tile mean sigma vs cn_lpips,2800,-0.2261,,
+s2colour,tile mean sigma vs edge_f1,2800,0.7229,,

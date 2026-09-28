@@ -1,0 +1,7 @@
+check,value,pass
+test tile ids also in train,0,True
+test tile ids also in val,0,True
+val tile ids also in train,0,True
+test ArcGIS images byte-identical to a training image,0,True
+test places that India 20k (the starting model) trained on,0,True
+"min distance, test tile to any trained tile (km)",54.3,True

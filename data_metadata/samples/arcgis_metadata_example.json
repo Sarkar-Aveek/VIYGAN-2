@@ -1,0 +1,74 @@
+{
+  "tile_id": "17_92846_60570",
+  "city": "agumbe_ghats",
+  "country": "India",
+  "tile": {
+    "x": 92846,
+    "y": 60570,
+    "zoom": 17
+  },
+  "crs": "EPSG:3857",
+  "bbox_3857": [
+    8349980.9698726535,
+    1518039.3817436022,
+    8350286.717985794,
+    1518345.129856743
+  ],
+  "bbox_wgs84": [
+    75.0091552734375,
+    13.509826058240764,
+    75.01190185546874,
+    13.512496627038285
+  ],
+  "hr": {
+    "source": "Vantor",
+    "width": 128,
+    "height": 128,
+    "channels": 3,
+    "format": "RGB PNG",
+    "provider": "Vivid",
+    "platform": "WV02",
+    "resolution_m": 0.5,
+    "accuracy_m": 5,
+    "acquisition_date_raw": 20231230,
+    "acquisition_date": "2023-12-30"
+  },
+  "arcgis_citations": [
+    {
+      "OBJECTID": 953397,
+      "SRC_DATE": null,
+      "SRC_RES": 15,
+      "SRC_ACC": 12,
+      "SRC_DESC": "TerraColor NextGen",
+      "MinMapLevel": 0,
+      "MaxMapLevel": 11,
+      "NICE_NAME": "TerraColor NextGen",
+      "DrawOrder": 70,
+      "SRC_DATE2": null,
+      "NICE_DESC": "Earthstar Geographics",
+      "BlockName": null,
+      "ReleaseName": null
+    },
+    {
+      "OBJECTID": 1889616,
+      "SRC_DATE": 20231230,
+      "SRC_RES": 0.5,
+      "SRC_ACC": 5,
+      "SRC_DESC": "WV02",
+      "MinMapLevel": 12,
+      "MaxMapLevel": 18,
+      "NICE_NAME": "Vivid",
+      "DrawOrder": 80,
+      "SRC_DATE2": 1703894400000,
+      "NICE_DESC": "Vantor",
+      "BlockName": "Vivid_Standard_30_IN11_25Q4",
+      "ReleaseName": "Raster Basemaps 2026.R05"
+    }
+  ],
+  "arcgis_metadata_query": {
+    "layer": "World Imagery Citations",
+    "layer_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/4",
+    "query_x_3857": 8350133.843929224,
+    "query_y_3857": 1518192.2558001727
+  }
+}
