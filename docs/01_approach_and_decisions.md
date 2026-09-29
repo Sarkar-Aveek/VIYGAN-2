@@ -29,8 +29,8 @@ A **multi-date generative super-resolution network**:
 ```
 
 It is the Allen AI **Satlas** super-resolution generator (trained on 1.2 million US Sentinel-2 → NAIP pairs),
-fine-tuned twice on Indian data: 103,936 real pairs from 55 Indian places, with 0.31–0.5 m ArcGIS World Imagery
-as the reference. It is tested on 7 whole places it never saw.
+fine-tuned twice on Indian data: 103,936 real pairs from 55 Indian places, with ArcGIS World Imagery
+as the reference (zoom-17 tiles at 2.39 m/px, resampled from 0.31–0.5 m satellite captures). It is tested on 7 whole places it never saw.
 
 ## 1.3 How the project went
 
@@ -53,7 +53,7 @@ Every decision was **measured before it was kept**. Ideas that lost were dropped
 | **Start from Satlas, fine-tune** | train from scratch | Satlas learned 2.5 m texture from 1.2 M pairs. Fine-tuning keeps that and replaces US textures with Indian ones in ~3 h per run on a laptop GPU (RTX 5060, 8 GB). |
 | **Sentinel-2 L2A input** | L1C (top of atmosphere) | Phase 3: L2A (atmosphere removed) cuts the contrast gap to the reference from 20.5 to 12.5 and helps most on hazy dates. It is also the product users would feed in. |
 | **RGB bands only (B04/B03/B02), in and out** | adding near-infrared, red-edge or short-wave infrared bands to the input | The reference imagery has only three bands (R, G, B), so no other band can be supervised or output. As inputs they would cost more quota, discard the pretrained first layer, and add 20–60 m detail to a 10 m signal. Satlas's default released model (our start) is RGB too. [1.6](#16-why-the-input-and-output-are-rgb-only) |
-| **Real pairs, ArcGIS World Imagery as the reference** | NAIP (USA only), SPOT/Pléiades (paid), synthetic downsampling of Sentinel-2 | Free, 0.31–0.5 m, covers India, and publishes capture date, sensor and resolution for **every** tile, which makes a full metadata audit possible ([2.4](02_data.md#24-every-tile-checked-through-its-metadata)). Synthetic downsampling teaches a network to undo its own blur, not to recover real sub-10 m detail. |
+| **Real pairs, ArcGIS World Imagery as the reference** | NAIP (USA only), SPOT/Pléiades (paid), synthetic downsampling of Sentinel-2 | Free, sharper than the 2.39 m target grid (0.31–0.5 m captures, exported at 2.39 m), covers India, and publishes capture date, sensor and resolution for **every** tile, which makes a full metadata audit possible ([2.4](02_data.md#24-every-tile-checked-through-its-metadata)). Synthetic downsampling teaches a network to undo its own blur, not to recover real sub-10 m detail. |
 | **2.39 m output (x4 on the zoom-17 grid)** | x2 (5 m), x3 (3.3 m) | Meets < 4 m with margin, and is the grid Satlas was trained on, so its weights transfer. The output grid is an exact Web-Mercator tile grid, so every pixel has a known map position. |
 | **Two models, two colour conventions** | one model | Users need two different things. **arcgis_B** looks like the familiar basemap. **s2colour** keeps the measured Sentinel-2 colour of every 10 m cell (locked inside the network), for change detection and anything quantitative: the PS's "spectral consistency". |
 | **arcgis_B over run A** | run A (the Satlas recipe unchanged) | Decided on the 50 validation tiles, never on test places. B was better on 5 of 6 validation metrics (cPSNR 22.79 vs 22.62, SSIM 0.518 vs 0.507, edge-F1 0.688 vs 0.683, gradient correlation 0.391 vs 0.379; LPIPS 0.141 vs 0.139). Its losses are designed to invent less ([3.4](03_models.md#34-losses)). |

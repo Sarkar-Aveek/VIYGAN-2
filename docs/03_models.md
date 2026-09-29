@@ -95,7 +95,7 @@ Why each choice:
   the target's mean colour, and the discriminator sees only high frequencies. All of its training signal goes into
   detail.
 - **Real pairs instead of synthetic degradation.** Real-ESRGAN learns to undo artificial blur. These models learn the
-  actual relationship between Sentinel-2 and a 0.3–0.5 m camera, including atmosphere and sensor differences.
+  actual relationship between Sentinel-2 and 0.3–0.5 m camera imagery (seen at 2.39 m), including atmosphere and sensor differences.
 
 ## 3.5 Confidence layer
 

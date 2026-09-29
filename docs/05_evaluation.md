@@ -3,7 +3,7 @@
 [← 4. Training](04_training.md) · next: [6. Geospatial consistency](06_geospatial_consistency.md)
 
 **Test set:** 2,800 tiles from **7 Indian places the models never saw** (≥ 54 km from any training tile), scored
-against 0.31–0.5 m ArcGIS imagery. Every number here is in
+against ArcGIS imagery at 2.39 m/px (zoom 17, resampled from 0.31–0.5 m captures). Every number here is in
 [`results/benchmark/metrics/`](../results/benchmark/metrics/) (`summary.csv` per model and per place,
 `tiles.csv` per tile, `chips.csv` per opensr-test chip); every figure in
 [`results/benchmark/figures/`](../results/benchmark/figures/).

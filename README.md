@@ -7,7 +7,7 @@ account of uncertainty and error.
 
 **Our answer:** a super-resolution mapping framework built on a generative adversarial network that reads **8 Sentinel-2 L2A dates** of the same place (10 m) and
 produces **2.39 m** imagery. It is the Allen AI Satlas multi-date ESRGAN, fine-tuned on **103,936 real Indian image
-pairs** from 55 places against 0.31–0.5 m ArcGIS World Imagery, and tested on **7 whole places it never saw**.
+pairs** from 55 places against **2.39 m** ArcGIS World Imagery tiles (zoom 17, resampled from 0.31–0.5 m satellite captures), and tested on **7 whole places it never saw**.
 It comes in two versions:
 
 | model | colours | for |
@@ -17,7 +17,7 @@ It comes in two versions:
 
 ![Hyderabad old city: reference, 10 m input, our two models, ESA's SEN2SR and LDSR-S2, Real-ESRGAN](results/benchmark/figures/06_visual_vs_published/hyderabad_charminar.png)
 
-*Hyderabad old city, a test place. Columns: 0.3–0.5 m reference | one 10 m Sentinel-2 date | **arcgis_B** |
+*Hyderabad old city, a test place. Columns: 2.39 m ArcGIS reference | one 10 m Sentinel-2 date | **arcgis_B** |
 **s2colour** | ESA SEN2SR | ESA LDSR-S2 (diffusion) | Real-ESRGAN.*
 
 ## Headline results (7 unseen Indian places, 2,800 tiles)
@@ -42,6 +42,14 @@ Full table with PSNR, SSIM, cPSNR and all opensr-test scores: [docs/05](docs/05_
   the papers: [docs/05 §5.1](docs/05_evaluation.md#51-why-psnr-and-ssim-are-not-the-headline).
 - **Stacking 8 dates does not blur geometry.** The dates are co-registered to 0.027 px (0.26 m) on average, and
   s2colour's output follows their consensus to 0.010 px: [docs/06](docs/06_geospatial_consistency.md).
+- **These scores need a ground-truth image, so they cannot be computed on a newly generated tile.** PSNR, SSIM,
+  LPIPS, edge-F1 and opensr-test's improvement / omission / hallucination all compare the output with a true
+  high-resolution image of the same place. In real use there is none, since that is why super-resolution is needed.
+  So accuracy is measured once, on the 7 held-out places that do have a reference. Every new output is then checked
+  only against its Sentinel-2 input, which always exists: s2colour's colour lock (each 10 m cell keeps its measured
+  colour), opensr-test's reflectance / spectral / spatial consistency with the input, position against the input
+  dates, and a per-pixel confidence map validated on the test places (AUROC 0.74 for s2colour):
+  [docs/07](docs/07_uncertainty.md).
 
 ## PS requirement → evidence
 
@@ -51,9 +59,9 @@ Full table with PSNR, SSIM, cPSNR and all opensr-test scores: [docs/05](docs/05_
 | Output < 4 m | 2.39 m pixel spacing (×4), exact Web-Mercator tiles, GeoTIFF export | [docs/03](docs/03_models.md), [docs/06 §6.6](docs/06_geospatial_consistency.md#66-georeferencing) |
 | Pre-processing | L2A atmospheric correction, dates matched to the reference capture (±120 days), per-tile cloud/haze test, shared dates per block, water / mismatch / no-data filters | [docs/02 §2.3](docs/02_data.md#23-how-a-training-pair-is-made-pre-processing) |
 | Model choice (Transformer / generative / CNN) | multi-date GAN (ESRGAN); chosen after measuring 7 published models (GANs, Swin transformers, CNN, diffusion) and 11 fine-tunes of them on Indian sites | [docs/05 §5.10](docs/05_evaluation.md#510-how-the-architecture-was-chosen-phase-2), [results/architecture_comparison/](results/architecture_comparison/) |
-| Model training with paired datasets | 103,936 **real** pairs (Sentinel-2 ↔ 0.31–0.5 m imagery), every pair checked through its metadata; full logs | [docs/02](docs/02_data.md), [docs/04](docs/04_training.md), [training_logs/](training_logs/) |
+| Model training with paired datasets | 103,936 **real** pairs (Sentinel-2 10 m ↔ ArcGIS 2.39 m, from 0.31–0.5 m captures), every pair checked through its metadata; full logs | [docs/02](docs/02_data.md), [docs/04](docs/04_training.md), [training_logs/](training_logs/) |
 | Accuracy assessment | 10 metrics per model, including ESA's opensr-test; per place; off season; 1 vs 8 dates | [docs/05](docs/05_evaluation.md) |
-| Validation against high-resolution references | 7 held-out places ≥ 54 km from training, 2,800 tiles vs 0.31–0.5 m imagery; Spanish cities vs 2.5 m aerial orthophoto; no data leak (6 checks) | [docs/05](docs/05_evaluation.md), [docs/02 §2.5](docs/02_data.md#25-no-data-leak) |
+| Validation against high-resolution references | 7 held-out places ≥ 54 km from training, 2,800 tiles vs 2.39 m ArcGIS imagery (from 0.31–0.5 m captures); Spanish cities vs 2.5 m aerial orthophoto; no data leak (6 checks) | [docs/05](docs/05_evaluation.md), [docs/02 §2.5](docs/02_data.md#25-no-data-leak) |
 | Geospatial consistency | s2colour 0.010 px from the input's position; dates co-registered to 0.027 px; arcgis_B 0.08 px (explained) | [docs/06](docs/06_geospatial_consistency.md) |
 | Spectral consistency | s2colour's colour locked to the input per 10 m cell (colour error 0.022); opensr-test reflectance 0.0066 in Spain | [docs/03 §3.3](docs/03_models.md#33-the-colour-lock-s2colour-only) |
 | Uncertainty and error components | improvement / omission / hallucination per model; a per-pixel confidence map tested against the real error (AUROC 0.74 for s2colour) | [docs/07](docs/07_uncertainty.md) |
