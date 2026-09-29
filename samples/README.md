@@ -1,10 +1,12 @@
 # Samples
 
-One 4 × 4-tile chip (1.2 km × 1.2 km) of **Hyderabad's old city**, a test place the models never saw.
+Sample Sentinel-2 inputs and both models' outputs, one file per tile. The current set is one 4 × 4-tile chip
+(1.2 km × 1.2 km) of **Hyderabad's old city**, a test place the models never saw; stacks from other places can be
+dropped into `input_sentinel2/` and run the same way.
 
 | folder | contents |
 |---|---|
-| `input_sentinel2/hyderabad_charminar/` | 16 Sentinel-2 L2A stacks: `<tile>.png` is 8 dates × 32 × 32 px (10 m) stacked vertically, `<tile>.json` lists the dates and the reference capture they were matched to |
+| `input_sentinel2/` | Sentinel-2 L2A stacks (16 now): `<tile>.png` is 8 dates × 32 × 32 px (10 m) stacked vertically, `<tile>.json` lists the dates and the reference capture they were matched to |
 | `output_arcgis_B/`, `output_s2colour/` | for each tile, `<tile>_sr.png` (128 × 128, 2.39 m) and `<tile>_lr.png` (the first input date, 32 × 32) |
 
 Regenerate the outputs:
