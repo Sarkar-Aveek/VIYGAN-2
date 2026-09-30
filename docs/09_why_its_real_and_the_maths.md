@@ -5,7 +5,8 @@
 Our outputs draw street grids, building blocks and field edges from 10 m input. That looks too good to be true, so
 this document does three things: lists the evidence that the numbers are real (9.1), explains why we did not use a
 transformer such as SwinIR (9.2), proves mathematically why a sharp output with some invented detail is the better
-choice than a blurry one (9.3), and gives the exact formula of every metric we report (9.4).
+choice than a blurry one (9.3), gives the exact formula of every metric we report (9.4), and states exactly what
+s2colour's spectral consistency guarantees and what it does not (9.5).
 
 ## 9.1 "Too good to be true?" The evidence that it is not
 
@@ -162,8 +163,8 @@ $$\text{MSE} = \frac{1}{HWC} \sum_{i,j,c} \big(\hat{x}_{ijc} - x_{ijc}\big)^2, \
 **cPSNR** (PROBA-V challenge metric; [`calculate_cpsnr`](../code/esrgan/metrics.py)): PSNR maximised over shifts
 $(u, v) \in \{0..8\}^2$ px of the overlapping crops, after removing the per-channel brightness bias $b_c$:
 
-$$b_c(u,v) = \operatorname{mean}_{ij}\big(\hat{x}_{ijc} - x^{(u,v)}_{ijc}\big), \qquad
-\text{cPSNR} = \max_{u,v}\ 10 \log_{10} \frac{255^2}{\operatorname{mean}_{ijc}\big(\hat{x}_{ijc} - x^{(u,v)}_{ijc} - b_c\big)^2}.$$
+$$b_c(u,v) = \mathrm{mean}_{ij}\big(\hat{x}_{ijc} - x^{(u,v)}_{ijc}\big), \qquad
+\text{cPSNR} = \max_{u,v}\ 10 \log_{10} \frac{255^2}{\mathrm{mean}_{ijc}\big(\hat{x}_{ijc} - x^{(u,v)}_{ijc} - b_c\big)^2}.$$
 
 **SSIM** (Wang et al. 2004; BasicSR `calculate_ssim`: 11 × 11 Gaussian window, σ = 1.5, per channel, averaged):
 
@@ -276,3 +277,74 @@ Every formula in the first group has $x$, the reference, in it. On a newly gener
 image of that place and date existed, nobody would need super-resolution. So those metrics are measured once, on held-out
 places that do have a reference, and describe how the model behaves on unseen land. The second group uses only $y$
 and $\hat{x}$, so it can be computed for every output; the app shows the confidence map as a layer ("Confidence heatmap").
+
+## 9.5 Spectral consistency: what s2colour guarantees, and what it does not
+
+s2colour's output bands are tied to Sentinel-2's own measurements. The lock
+([3.3](03_models.md#33-the-colour-lock-s2colour-only)) forces the mean of every 4 × 4 block of output pixels (one
+10 m cell) onto the value Sentinel-2 measured for that cell, **separately in each band: B04 (red, 665 nm), B03
+(green, 560 nm) and B02 (blue, 490 nm)**. At the 10 m scale, the value of each band therefore comes from the
+measurement, not from the network.
+
+### The guarantee, stated precisely
+
+For each band $b \in \{\text{B04}, \text{B03}, \text{B02}\}$, with $A$ the 4 × 4 block mean and $m_b$ the per-pixel
+median of that band over the 8 input dates, the lock drives
+
+$$A\hat{x}_b = m_b \qquad \text{(to within 0.25 of 255 after the three correction steps).}$$
+
+Anything computed from 10 m block means therefore gives the same answer on the output as on the input:
+
+- **Reflectance consistency, per band:** $\frac{1}{N}\sum_k \lvert (A\hat{x}_b)_k - (m_b)_k \rvert \approx 0$.
+- **Spectral angle:** each block's band vector $(B04, B03, B02)$ equals the input's, so
+  $\theta_k = \arccos\frac{\langle A\hat{x}_k, m_k\rangle}{\lVert A\hat{x}_k\rVert\,\lVert m_k\rVert} \approx 0$, i.e.
+  the spectral signature of every 10 m cell is kept.
+- **Any linear quantity** (band means, zonal statistics over whole 10 m cells, band differences such as B04 − B03)
+  matches the input in the same way, because averaging is linear: summing a band over a cell of the output is summing
+  that band of the input.
+
+The network is free only *inside* a cell: in each band, it decides how the cell's fixed value is distributed among its
+16 output pixels. A higher B04 value in one corner forces the rest of the cell lower in B04, so invented detail cannot
+change what any 10 m cell measured in any band.
+
+Measured:
+
+| where | s2colour | arcgis_B | SEN2SR Lite (ESA) |
+|---|---|---|---|
+| India, reflectance vs input (opensr-test, L1 over B04/B03/B02) ↓ | **0.022** | 0.095 | 0.005 |
+| Spain, reflectance (L1) ↓ | **0.0066** | 0.0317 | 0.0289 |
+| Spain, spectral angle over B04/B03/B02 (°) ↓ | 0.723 | 4.306 | **0.671** |
+
+([5.3](05_evaluation.md#53-results-7-unseen-indian-places-in-season),
+[5.7](05_evaluation.md#57-outside-india-esas-opensr-test-benchmark-spanish-cities).) arcgis_B is far off by design:
+it reproduces the ArcGIS basemap's rendering, not Sentinel-2's band values.
+
+### Why this is "consistent", not "never wrong"
+
+The lock makes s2colour **agree with Sentinel-2's B04, B03 and B02 at 10 m**. That is the problem statement's
+spectral consistency, and it holds by construction. It does not make every band value correct:
+
+1. **Band values of individual 2.39 m pixels are inferred.** Only each cell's mean per band is fixed. Which of its 16
+   pixels carry the low B04/B03/B02 values of a road and which the high values of a roof is the model's estimate, and
+   it can be wrong. The confidence map shows where this is likely
+   ([7.2](07_uncertainty.md#72-a-per-pixel-confidence-map-tested-against-the-real-error)).
+2. **The lock follows the median of 8 dates, not one date.** If the ground changed between dates (a crop harvested,
+   a flood receding), each band shows the median state, not the state on any single day.
+3. **Sentinel-2 is the reference, errors included.** The input is L2A surface reflectance; any error in its
+   atmospheric correction, or residual haze in some dates, is locked in too. Consistent with Sentinel-2 means exactly
+   that, not consistent with the ground.
+4. **High reflectance is clipped.** Each band is stored as ESA's true-colour product does: reflectance / 0.3558 →
+   1–255 ([`sentinel2_collector.py`](../code/collectors/sentinel2_collector.py)). Snow, white roofs and bright sand
+   with reflectance above 0.3558 in a band saturate at 255, so the lock is to the clipped value, not the true
+   reflectance.
+5. **The benchmark numbers are small, not zero.** The lock is iterative (0.25 of 255 left after three steps), the
+   output is clipped to 0–255, and opensr-test downsamples with its own filter rather than the exact 4 × 4 block
+   mean. That is why reflectance is 0.022 in India, not 0. On spectral angle in Spain, ESA's SEN2SR (0.671°) is
+   slightly closer than s2colour (0.723°), because it adds less detail.
+6. **Three bands only.** The lock covers B04, B03 and B02, the only bands the reference has to train against. B08
+   (NIR), the red-edge bands and B11/B12 (SWIR) are not super-resolved, so NDVI (B08, B04), NDWI (B03, B08) and NBR
+   (B08, B12) must still be computed from the native 10–20 m bands ([8](08_limitations.md)).
+
+**In one line:** s2colour can never contradict what Sentinel-2 measured in B04, B03 or B02 for a 10 m cell (within
+the stated tolerances), but the band values of each 2.39 m pixel inside that cell are still the model's best
+estimate. For quantitative work, aggregate to whole 10 m cells or larger, where the band values are the measurement.

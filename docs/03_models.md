@@ -61,7 +61,9 @@ Sentinel-2 measured there** (mean colour error vs the input 0.022 on the test se
 [5.3](05_evaluation.md#53-results-7-unseen-indian-places-in-season)). The network can only add detail *within*
 a cell, never change what the cell measures. This is the PS's "spectral consistency", enforced by construction
 rather than hoped for. It is the same idea as ESA SEN2SR's "low-frequency hard constraint layer", applied in the
-spatial domain ([references](../references/README.md#9c-sen2sr-hard-constraint-abstract-only)).
+spatial domain ([references](../references/README.md#9c-sen2sr-hard-constraint-abstract-only)). What the lock
+guarantees band by band (B04, B03, B02), and what it does not:
+[9.5](09_why_its_real_and_the_maths.md#95-spectral-consistency-what-s2colour-guarantees-and-what-it-does-not).
 
 ## 3.4 Losses
 
