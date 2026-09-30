@@ -1,6 +1,6 @@
 # 8. Limitations
 
-[← 7. Uncertainty](07_uncertainty.md) · [back to README](../README.md)
+[← 7. Uncertainty](07_uncertainty.md) · next: [9. Why it's real, and the maths](09_why_its_real_and_the_maths.md)
 
 Stated plainly, so that no result in this repository is read as more than it is.
 

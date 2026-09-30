@@ -20,6 +20,23 @@ It comes in two versions:
 *Hyderabad old city, a test place. Columns: 2.39 m ArcGIS reference | one 10 m Sentinel-2 date | **arcgis_B** |
 **s2colour** | ESA SEN2SR | ESA LDSR-S2 (diffusion) | Real-ESRGAN.*
 
+## The app: [viygan-2.pages.dev](https://viygan-2.pages.dev)
+
+Both models run behind a web GIS workspace. Search a place or pick a block on the globe, choose the dates, and view
+the **super-resolved** layer (arcgis_B, 2.39 m), the **Sentinel colours** layer (s2colour, colour-locked), the
+**confidence heatmap** (bright where the model inferred detail), detected edges, spectral indices, zonal statistics
+and provenance, with georeferenced export (EPSG:3857).
+
+![VIYGAN-2 landing page](docs/images/app_landing.jpg)
+
+*Landing page: [viygan-2.pages.dev](https://viygan-2.pages.dev).*
+
+![VIYGAN-2 dashboard](docs/images/app_dashboard.jpg)
+
+*Dashboard: [viygan-2.pages.dev/dashboard.html](https://viygan-2.pages.dev/dashboard.html). Left: model and derived
+layers (super-resolved, Sentinel colours, confidence heatmap, detected edges). Right: area of interest, dates, quick
+look, analysis and provenance.*
+
 ## Headline results (7 unseen Indian places, 2,800 tiles)
 
 | model | edge-F1 ↑ | LPIPS ↓ | correct new detail (opensr-test) ↑ | invented detail ↓ | shift vs input (px) ↓ |
@@ -51,6 +68,33 @@ Full table with PSNR, SSIM, cPSNR and all opensr-test scores: [docs/05](docs/05_
   dates, and a per-pixel confidence map validated on the test places (AUROC 0.74 for s2colour):
   [docs/07](docs/07_uncertainty.md).
 
+## Too good to be true? Why these results are real
+
+The outputs show street grids and field edges that the 10 m input does not visibly resolve, so it is fair to ask.
+The model does not *see* 2.39 m detail: it reads 8 sub-pixel-shifted dates and draws its **best estimate**, learned
+from 1.2 M US and 103,936 Indian real pairs. What makes the numbers trustworthy
+([docs/09 §9.1](docs/09_why_its_real_and_the_maths.md#91-too-good-to-be-true-the-evidence-that-it-is-not)):
+
+- **Scored on 7 places it never saw**, ≥ 54.3 km from any training tile; 6 leak checks, all 0. Model choice used
+  validation tiles only.
+- **Rivals run exactly as their authors run them**, and an **independent ESA benchmark** (opensr-test) on its own
+  Spanish dataset agrees.
+- **We do not win everything:** bicubic beats us on PSNR, ESA's models invent less. Invented detail is measured
+  (hallucination 0.24–0.26) and mapped per pixel, and s2colour cannot change any 10 m cell's measured colour.
+- **Reproducible:** weights, sample inputs, `infer.py` and the scripts that recompute every number are here.
+
+**Why a GAN and not SwinIR or another transformer:** measured, not assumed. At equal budget (one epoch, same Indian
+tiles, same losses) the multi-date ESRGAN reached LPIPS 0.211–0.218 against SwinIR-L's 0.280; SwinIR cannot use the 8
+dates, and the transformer with the best cPSNR (Swin2-MoSE) got it by blurring (LPIPS 0.484):
+[docs/09 §9.2](docs/09_why_its_real_and_the_maths.md#92-why-not-swinir-or-another-transformer).
+
+**Why a little hallucination beats blur, proved:** the PSNR-optimal output is the average of all plausible scenes,
+which is blurred; an ideal sharp output drawn from the same possibilities has exactly 2× its squared error, so blur can
+never win by more than 10·log₁₀2 ≈ **3.01 dB**. We pay 0.19–0.52 dB against bicubic and gain +0.23 edge-F1 and
+−0.39 LPIPS: [docs/09 §9.3](docs/09_why_its_real_and_the_maths.md#93-why-a-sharp-guess-beats-the-blurry-average-the-proof).
+The exact formula of every metric (PSNR, cPSNR, SSIM, LPIPS, edge-F1, gradient correlation, opensr-test, AUROC):
+[docs/09 §9.4](docs/09_why_its_real_and_the_maths.md#94-the-formulas-behind-every-metric).
+
 ## PS requirement → evidence
 
 | PS requirement | how we meet it | where |
@@ -78,13 +122,14 @@ Full table with PSNR, SSIM, cPSNR and all opensr-test scores: [docs/05](docs/05_
 6. [Geospatial consistency](docs/06_geospatial_consistency.md): why 8 dates keep the geometry
 7. [Uncertainty and error](docs/07_uncertainty.md)
 8. [Limitations](docs/08_limitations.md)
+9. [Why it's real, and the maths](docs/09_why_its_real_and_the_maths.md): evidence against "too good to be true", why not SwinIR, proof that a sharp guess beats blur, every metric formula
 - [References and verified quotes](references/README.md)
 
 ## Repository layout
 
 ```text
 README.md                this page
-docs/                    the eight documents above
+docs/                    the nine documents above; docs/images/ holds the app screenshots
 code/                    everything that produced these results
   pipeline.py            all steps in order: collect, build, train, evaluate
   collectors/            ArcGIS reference + metadata, Sentinel-2 L2A (Copernicus Data Space), training-set build

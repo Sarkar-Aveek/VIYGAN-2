@@ -18,9 +18,9 @@ both the input and the reference). For our models on the 7 test places
 | s2colour | 0.472 | 0.288 | 0.239 |
 | bicubic (adds nothing) | 0.417 | 0.426 | 0.157 |
 
-These are relative weights that sum to 1 per model. Read them against the bicubic row: our models turn about 0.14–0.20
-of "omitted" into "improved", and about 0.08–0.11 into "hallucinated". That is the honest price of generative
-super-resolution, stated as a number.
+These are relative weights that sum to 1 per model. Read them against the bicubic row: our models cut "omitted" by 0.14–0.20;
+of that, 0.06–0.09 becomes "improved" and 0.08–0.11 becomes "hallucinated". That is the honest price of generative
+super-resolution, stated as a number ([9.3](09_why_its_real_and_the_maths.md#what-this-means-in-our-numbers)).
 
 ## 7.2 A per-pixel confidence map, tested against the real error
 
