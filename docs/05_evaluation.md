@@ -302,3 +302,51 @@ python ps_proof.py figures
 ```
 
 Needs `code/data/test/` (from `python pipeline.py --only test_data`) and the trained checkpoints.
+
+## 5.12 Why model 3 is its own model: colouring model 1 afterwards does not work
+
+The obvious shortcut to Sentinel-2 band values is to take model 1 (arcgis_B) and apply the same colour lock to its
+output afterwards (`lowpass_transfer` in [`s2colour.py`](../code/esrgan/s2colour.py), 3 steps, exactly as inside
+s2colour). We tried it first; it damages the detail. That is why model 3 is a separate model that **fuses the two**:
+it starts from model 1's generator (the sharp structure learned from Indian pairs) and is trained further **with the
+lock inside the network**, with colour-blind losses and a high-pass discriminator
+([3.4](03_models.md#34-losses), [4.1](04_training.md#41-lineage)), so it learns to draw detail that survives the lock.
+
+Measured on the same 2,800 in-season test tiles and 117 opensr-test chips, same 8-date input
+([`results/ablation/`](../results/ablation/): script, per-tile and per-chip CSVs, `summary.csv`, `bootstrap.csv`):
+
+| | **s2colour** (model 3) | arcgis_B + lock afterwards | arcgis_B (model 1, no lock) |
+|---|---|---|---|
+| edge-F1 ↑ | **0.637** | 0.528 | 0.642 |
+| LPIPS (colour-normalised) ↓ | **0.193** | 0.277 | 0.182 |
+| gradient correlation ↑ | **0.344** | 0.304 | 0.356 |
+| SSIM (colour-normalised) ↑ | **0.446** | 0.374 | 0.473 |
+| opensr-test improvement ↑ | **0.472** | 0.415 | 0.510 |
+| opensr-test omission ↓ | **0.288** | 0.347 | 0.226 |
+| opensr-test hallucination ↓ | 0.240 | 0.237 | 0.264 |
+| block error vs input (reflectance) ↓ | 0.0104 | **0.0006** | 0.0359 |
+| opensr-test reflectance ↓ / spectral (°) ↓ | 0.0217 / 1.15 | **0.0073 / 0.77** | 0.0950 / 4.72 |
+
+Paired bootstrap, s2colour minus (arcgis_B + lock), 95% intervals over tiles (chips for opensr-test):
+edge-F1 **+0.110** [+0.107, +0.112], colour-normalised LPIPS **−0.084** [−0.086, −0.083], improvement **+0.057**
+[+0.050, +0.063], omission **−0.059** [−0.067, −0.051], hallucination +0.002 [−0.002, +0.007] (no difference).
+Off season the gap is the same (edge-F1 0.566 vs 0.471, LPIPS 0.224 vs 0.302).
+
+![reference | s2colour | arcgis_B + lock afterwards | arcgis_B](../results/ablation/examples.png)
+
+*One high-structure tile per place (Barmer, Hyderabad, Lachung, Shillong): reference | s2colour | arcgis_B + lock
+afterwards | arcgis_B. The lock applied afterwards turns shrubs and streets into grain.*
+
+What it shows:
+- **Locking model 1 afterwards throws away most of what super-resolution added.** Edge-F1 falls from 0.642 to 0.528,
+  closer to bicubic (0.405) than to either of our models, and LPIPS rises from 0.182 to 0.277. arcgis_B's colours
+  are far from Sentinel-2's (block error 0.036), so the lock has to make large corrections, and large smooth
+  corrections stacked on detail that was not drawn for them break it up.
+- **Model 3 keeps almost all of model 1's detail with Sentinel-2 band values**: edge-F1 0.637 vs 0.642, LPIPS 0.193
+  vs 0.182, at no extra hallucination. That is the gain from training with the lock inside.
+- **The price is a looser lock.** Locking afterwards matches the input more exactly (block error 0.0006 vs 0.0104
+  reflectance, about 0.4 vs 7 of 255), because arcgis_B's raw output is already close in brightness, while s2colour's
+  raw output is far off and three steps do not fully converge
+  ([9.6](09_why_its_real_and_the_maths.md#96-independent-check-against-venµs-same-day-5-m-reflectance)). Model 3
+  trades a few levels of 255 in the 10 m block means for keeping the structure; both are far closer to Sentinel-2
+  than model 1 (0.036).

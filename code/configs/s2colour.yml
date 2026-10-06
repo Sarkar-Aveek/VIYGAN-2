@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Noncommercial-1.0.0
+# Required Notice: Copyright (c) 2026 Aveek Sarkar (https://github.com/Sarkar-Aveek)
+# Non-commercial use only; see code/esrgan/LICENSE-s2colour.md.
+#
 # s2colour (released model, Sentinel-2 colours), stage 2: from run B, with the colours locked and the losses blind to colour (2026-09-20).
 #   input_lowpass          inside the network, every 4x4 block's colour is replaced by the Sentinel input's, so the
 #                          colours are right by construction and the model only ever learns detail

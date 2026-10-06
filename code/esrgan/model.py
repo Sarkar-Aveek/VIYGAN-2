@@ -16,7 +16,8 @@ from basicsr.models.srgan_model import SRGANModel
 from basicsr.utils import USMSharp, get_root_logger, imwrite, tensor2img
 from basicsr.utils.registry import MODEL_REGISTRY
 
-from esrgan.networks import colour_transfer, frames_median
+from esrgan import s2colour  # PolyForm Noncommercial, see LICENSE-s2colour.md
+from esrgan.s2colour import colour_transfer, frames_median
 
 
 @MODEL_REGISTRY.register()
@@ -91,13 +92,10 @@ class SSRESRGANModel(SRGANModel):
 
     @staticmethod
     def match_mean(ref, img):
-        """Shift `img` to `ref`'s per-channel mean, without passing gradients through the shift."""
-        return img + (ref.mean(dim=(2, 3), keepdim=True) - img.mean(dim=(2, 3), keepdim=True)).detach()
+        return s2colour.match_mean(ref, img)
 
     def highpass(self, img):
-        scale = self.opt['scale']
-        return img - F.interpolate(F.avg_pool2d(img, scale), scale_factor=scale, mode='bicubic',
-                                   align_corners=False)
+        return s2colour.highpass(img, self.opt['scale'])
 
     def disc_input(self, img, lr_up):
         # `disc_highpass`: judge texture, not colour (the GT's colour is not predictable from the input).

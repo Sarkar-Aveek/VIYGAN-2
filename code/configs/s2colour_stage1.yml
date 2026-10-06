@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Noncommercial-1.0.0
+# Required Notice: Copyright (c) 2026 Aveek Sarkar (https://github.com/Sarkar-Aveek)
+# Non-commercial use only; see code/esrgan/LICENSE-s2colour.md.
+#
 # s2colour, stage 1 (run 2026-09-20 as experiments/s2colour_24k_v1): arcgis_B's generator with the colour lock and
 # colour-blind losses. Settings recovered from the training log (training_logs/s2colour/stage1_s2colour_24k_v1/).
 #   input_lowpass          inside the network, every 4x4 block's colour is replaced by the Sentinel input's

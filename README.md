@@ -8,12 +8,19 @@ account of uncertainty and error.
 **Our answer:** a super-resolution mapping framework built on a generative adversarial network that reads **8 Sentinel-2 L2A dates** of the same place (10 m) and
 produces **2.39 m** imagery. It is the Allen AI Satlas multi-date ESRGAN, fine-tuned on **103,936 real Indian image
 pairs** from 55 places against **2.39 m** ArcGIS World Imagery tiles (zoom 17, resampled from 0.31–0.5 m satellite captures), and tested on **7 whole places it never saw**.
-It comes in two versions:
+It comes in two versions (code: Apache 2.0, except the s2colour code: **PolyForm Noncommercial**; weights and docs:
+**CC BY-NC 4.0, non-commercial**; see
+[Licence](#licence)):
 
 | model | colours | for |
 |---|---|---|
 | **arcgis_B** | ArcGIS World Imagery look | visual interpretation, digitising, maps |
 | **s2colour** | **Sentinel-2's measured colour, locked per 10 m cell** | change detection, comparison with other Sentinel-2 data, anything quantitative |
+
+s2colour is not arcgis_B recoloured. Applying the same colour lock to arcgis_B's output afterwards breaks its detail
+(edge-F1 0.642 → 0.528, LPIPS 0.182 → 0.277 on the 2,800 test tiles). s2colour fuses the two: it starts from
+arcgis_B's generator and is trained with the lock inside, so it keeps the detail (edge-F1 0.637, LPIPS 0.193) with
+Sentinel-2's band values: [docs/05 §5.12](docs/05_evaluation.md#512-why-model-3-is-its-own-model-colouring-model-1-afterwards-does-not-work).
 
 ![Hyderabad old city: reference, 10 m input, our two models, ESA's SEN2SR and LDSR-S2, Real-ESRGAN](results/benchmark/figures/06_visual_vs_published/hyderabad_charminar.png)
 
@@ -105,7 +112,7 @@ The exact formula of every metric (PSNR, cPSNR, SSIM, LPIPS, edge-F1, gradient c
 | Model choice (Transformer / generative / CNN) | multi-date GAN (ESRGAN); chosen after measuring 7 published models (GANs, Swin transformers, CNN, diffusion) and 11 fine-tunes of them on Indian sites | [docs/05 §5.10](docs/05_evaluation.md#510-how-the-architecture-was-chosen-phase-2), [results/architecture_comparison/](results/architecture_comparison/) |
 | Model training with paired datasets | 103,936 **real** pairs (Sentinel-2 10 m ↔ ArcGIS 2.39 m, from 0.31–0.5 m captures), every pair checked through its metadata; full logs | [docs/02](docs/02_data.md), [docs/04](docs/04_training.md), [training_logs/](training_logs/) |
 | Accuracy assessment | 10 metrics per model, including ESA's opensr-test; per place; off season; 1 vs 8 dates | [docs/05](docs/05_evaluation.md) |
-| Validation against high-resolution references | 7 held-out places ≥ 54 km from training, 2,800 tiles vs 2.39 m ArcGIS imagery (from 0.31–0.5 m captures); Spanish cities vs 2.5 m aerial orthophoto; no data leak (6 checks) | [docs/05](docs/05_evaluation.md), [docs/02 §2.5](docs/02_data.md#25-no-data-leak) |
+| Validation against high-resolution references | 7 held-out places ≥ 54 km from training, 2,800 tiles vs 2.39 m ArcGIS imagery (from 0.31–0.5 m captures); Spanish cities vs 2.5 m aerial orthophoto; an independent same-day check against VENµS 5 m reflectance in Telangana (SEN2VENµS: s2colour's band values within 0.004 of the two sensors' own disagreement); no data leak (6 checks) | [docs/05](docs/05_evaluation.md), [docs/02 §2.5](docs/02_data.md#25-no-data-leak), [docs/09 §9.6](docs/09_why_its_real_and_the_maths.md#96-independent-check-against-venµs-same-day-5-m-reflectance) |
 | Geospatial consistency | s2colour 0.010 px from the input's position; dates co-registered to 0.027 px; arcgis_B 0.08 px (explained) | [docs/06](docs/06_geospatial_consistency.md) |
 | Spectral consistency | s2colour's B04, B03 and B02 locked to the Sentinel-2 values of every 10 m cell (reflectance vs input 0.022); opensr-test reflectance 0.0066 in Spain; what the lock does and does not guarantee | [docs/03 §3.3](docs/03_models.md#33-the-colour-lock-s2colour-only), [docs/09 §9.5](docs/09_why_its_real_and_the_maths.md#95-spectral-consistency-what-s2colour-guarantees-and-what-it-does-not) |
 | Uncertainty and error components | improvement / omission / hallucination per model; a per-pixel confidence map tested against the real error (AUROC 0.74 for s2colour) | [docs/07](docs/07_uncertainty.md) |
@@ -133,7 +140,7 @@ docs/                    the nine documents above; docs/images/ holds the app sc
 code/                    everything that produced these results
   pipeline.py            all steps in order: collect, build, train, evaluate
   collectors/            ArcGIS reference + metadata, Sentinel-2 L2A (Copernicus Data Space), training-set build
-  esrgan/                networks, dataset, losses and training step, metrics
+  esrgan/                networks, dataset, losses and training step, metrics; s2colour.py (non-commercial)
   configs/               arcgis_A (comparison), arcgis_B, s2colour_stage1, s2colour
   train.py, infer.py     training loop; inference with either model
   evaluate.py, ps_proof.py   evaluation on the test places; the evidence behind docs/05 and docs/07
@@ -144,6 +151,8 @@ samples/                 16 Sentinel-2 stacks from a test place + both models' o
 training_logs/           every run: config, full log, losses.csv, val.csv, curves.png
 results/benchmark/       every metric (CSV) and figure behind docs/05 and docs/07
 results/geospatial/      the analyses behind docs/06 (scripts, CSVs, figures)
+results/ablation/        model 3 vs model 1 + colour lock afterwards, behind docs/05 §5.12
+results/sen2venus/       the independent VENµS check behind docs/09 §9.6 (fetch + check scripts, CSVs, figure)
 results/architecture_comparison/   how the architecture was chosen: 7 published models + 11 fine-tunes, 4 sites
 data_metadata/           metadata of every tile (CSV), folder structure, samples; no images
 references/              bibliography with verified quotes; script to download the papers
@@ -163,6 +172,19 @@ cd code
 
 Runs on CPU too (slower). Reproducing the data needs Copernicus Data Space credentials (`code/.env.example`);
 the full pipeline is `python pipeline.py` (see [docs/04 §4.4](docs/04_training.md#44-reproducing-a-run)).
+
+## Licence
+
+| what | licence |
+|---|---|
+| source code (`code/`), except the s2colour code below | [Apache License 2.0](LICENSE) |
+| **s2colour code**: [`code/esrgan/s2colour.py`](code/esrgan/s2colour.py) (colour lock, colour-blind losses, high-pass discriminator input) and the two `code/configs/s2colour*.yml` | [PolyForm Noncommercial 1.0.0](code/esrgan/LICENSE-s2colour.md): non-commercial use only |
+| model weights (`weights/`) | [CC BY-NC 4.0](weights/LICENSE.md): non-commercial use, credit required |
+| documentation, results, figures and training logs (`docs/`, `results/`, `training_logs/`, `README.md`) | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) |
+
+Commercial use of the s2colour code, of the weights, or of models fine-tuned or distilled from them, needs written
+permission from the author. If you use this work, please cite it: [`CITATION.cff`](CITATION.cff). Third-party data keeps its own terms
+(Copernicus Sentinel data; Esri World Imagery; SEN2VENµS: Etalab 2.0 and CC BY-NC 4.0).
 
 ## Credits and data
 

@@ -11,7 +11,8 @@ each script use it as its working directory). Python 3.11, PyTorch 2.11 (CUDA 12
 | `collectors/arcgis_collector.py` | the 55 training and 7 test places; ArcGIS World Imagery tiles and their citation metadata |
 | `collectors/sentinel2_collector.py` | 8 clean Sentinel-2 L2A dates per tile (Copernicus Data Space Sentinel Hub): date selection, cloud/haze test, block-shared dates, quota control |
 | `collectors/build_training_data.py` | filters (water, mismatch, no-data, duplicates, cap on previously seen places), train/val split, `report.csv` |
-| `esrgan/networks.py` | generator `SSR_RRDBNet` (with the colour lock `input_lowpass`), discriminator `SSR_UNetDiscriminatorSN`, `lowpass_transfer` |
+| `esrgan/networks.py` | generator `SSR_RRDBNet` (with the colour lock `input_lowpass`), discriminator `SSR_UNetDiscriminatorSN` |
+| `esrgan/s2colour.py` | **s2colour's own code, PolyForm Noncommercial ([`LICENSE-s2colour.md`](esrgan/LICENSE-s2colour.md))**: the colour lock `lowpass_transfer`, `frames_median`, `colour_transfer`, the colour-blind loss shift `match_mean`, the high-pass discriminator input `highpass` |
 | `esrgan/model.py` | the training step: L1 + perceptual on the sharpened target, GAN, Sobel edge loss, colour-blind losses, EMA |
 | `esrgan/dataset.py` | 8 frames per tile (random during training), augmentation |
 | `esrgan/metrics.py` | cPSNR, LPIPS, edge-F1, gradient correlation |

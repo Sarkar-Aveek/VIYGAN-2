@@ -17,6 +17,10 @@ from torch.nn.utils import spectral_norm
 
 from basicsr.utils.registry import ARCH_REGISTRY
 
+# The colour lock and the other s2colour parts live in s2colour.py (PolyForm Noncommercial, LICENSE-s2colour.md);
+# re-exported here so existing imports keep working.
+from esrgan.s2colour import MAX_DETAIL_RATIO, colour_transfer, frames_median, lowpass_transfer  # noqa: F401
+
 
 @torch.no_grad()
 def default_init_weights(module_list, scale=1, bias_fill=0, **kwargs):
@@ -157,43 +161,6 @@ class SSR_UNetDiscriminatorSN(nn.Module):
         out = F.leaky_relu(self.conv7(x6), negative_slope=0.2, inplace=True)
         out = F.leaky_relu(self.conv8(out), negative_slope=0.2, inplace=True)
         return self.conv9(out)
-
-
-def frames_median(x):
-    """[b, n*3, h, w] frame stack -> [b, 3, h, w] per-pixel median over the frames."""
-    return x.view(x.shape[0], -1, 3, x.shape[2], x.shape[3]).median(dim=1).values
-
-
-def lowpass_transfer(out, ref, scale=4, steps=3):
-    """Give `out` [b, 3, H, W] the colours of `ref` [b, 3, H/scale, W/scale] while keeping out's detail: its
-    scale x scale block means are pushed onto ref with smooth corrections. Used inside the generator
-    (`input_lowpass`) and after it, to put any model's output into Sentinel-2 colours."""
-    for _ in range(steps):
-        diff = ref - F.avg_pool2d(out, scale)
-        out = out + F.interpolate(diff, scale_factor=scale, mode='bicubic', align_corners=False)
-    return out
-
-
-# Detail strength (mean |detail| / mean brightness, detail = finer than one input pixel) that a tile may keep.
-# Measured on 800 held-out test tiles: the ArcGIS targets sit at 0.145 (p90 0.202) and lowpass_transfer's outputs
-# at 0.152, so 0.22 leaves ordinary tiles untouched; a dark winter Shimla block sits at 0.299 and is pulled back.
-MAX_DETAIL_RATIO = 0.22
-
-
-def colour_transfer(out, ref, scale=4, steps=3):
-    """`lowpass_transfer` without the grain it causes on dark scenes: the detail is capped at MAX_DETAIL_RATIO.
-
-    The transfer only moves block means, so a scene it darkens (a winter hillside: Sentinel mean 0.10 where the
-    model's output was 0.25) keeps its detail at the old strength. Detail that was 24% of the brightness becomes
-    37%, and that over-contrast reads as grain. Here the detail is scaled back afterwards so its strength relative
-    to brightness is the one the model's own output had. Block means, i.e. the colours, are unchanged: the detail
-    has zero mean per block.
-    """
-    transferred = lowpass_transfer(out, ref, scale, steps)
-    low = F.interpolate(F.avg_pool2d(transferred, scale), scale_factor=scale, mode='bicubic', align_corners=False)
-    det = transferred - low
-    ratio = det.abs().mean(dim=(1, 2, 3), keepdim=True) / low.mean(dim=(1, 2, 3), keepdim=True).clamp_min(1e-3)
-    return (low + det * (MAX_DETAIL_RATIO / ratio.clamp_min(1e-6)).clamp(max=1.0)).clamp(0, 1)
 
 
 def load_generator(path, device, n_frames=8):

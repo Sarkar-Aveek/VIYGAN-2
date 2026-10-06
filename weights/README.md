@@ -1,5 +1,9 @@
 # Weights
 
+**Licence: CC BY-NC 4.0 (non-commercial use, credit required); see [`LICENSE.md`](LICENSE.md).** The code that runs
+them is Apache 2.0, except the s2colour code (PolyForm Noncommercial). Commercial use needs written permission from
+the author.
+
 | file | model | size | SHA-256 |
 |---|---|---|---|
 | `arcgis_B_generator.pth` | arcgis_B (ArcGIS colours), final checkpoint (24,000 iterations) | 67 MB | `e9cd9a50156cb2454ce47dbd57c9f95df0664580ee69216df7e287a222c796a1` |

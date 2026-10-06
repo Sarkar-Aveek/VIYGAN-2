@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code, the s2colour or arcgis_B weights, or the results, please cite this repository."
+title: "Multi-date generative super-resolution of Sentinel-2 for India (VIYGAN-2, SIH26142)"
+abstract: >-
+  Multi-date ESRGAN super-resolution of Sentinel-2 L2A (8 dates, 10 m) to 2.39 m for India, with two models:
+  arcgis_B (ArcGIS colours) and s2colour (Sentinel-2 band values locked per 10 m cell, trained with the lock inside
+  the network).
+type: software
+authors:
+  - given-names: Aveek
+    family-names: Sarkar
+    alias: Sarkar-Aveek
+repository-code: "https://github.com/Sarkar-Aveek/VIYGAN-2"
+url: "https://viygan-2.pages.dev"
+license:
+  - Apache-2.0
+  - CC-BY-NC-4.0
+  - PolyForm-Noncommercial-1.0.0
+version: "1.0.0"
+date-released: "2026-10-06"
+keywords:
+  - super-resolution
+  - Sentinel-2
+  - ESRGAN
+  - remote sensing
+  - India
