@@ -6,7 +6,8 @@ Our outputs draw street grids, building blocks and field edges from 10 m input. 
 this document does three things: lists the evidence that the numbers are real (9.1), explains why we did not use a
 transformer such as SwinIR (9.2), proves mathematically why a sharp output with some invented detail is the better
 choice than a blurry one (9.3), gives the exact formula of every metric we report (9.4), and states exactly what
-s2colour's spectral consistency guarantees and what it does not (9.5).
+s2colour's spectral consistency guarantees and what it does not (9.5), and checks it against an independent
+same-day sensor, VENµS (9.6).
 
 ## 9.1 "Too good to be true?" The evidence that it is not
 
@@ -252,7 +253,9 @@ also measures position with the fine detail removed.
 $$\hat{x} \leftarrow \hat{x} + \text{bicubic}_{\uparrow 4}\big(m - A\hat{x}\big),$$
 
 which drives $A\hat{x} \to m$: every 10 m cell of the output keeps the colour Sentinel-2 measured
-(block error 12.7 → 0.25 of 255 on validation tiles).
+(block error 12.7 → 0.25 of 255 on validation tiles; about 3 of 255 on the VENµS patches of
+[9.6](#96-independent-check-against-venµs-same-day-5-m-reflectance) and about 7 of 255 on the 2,800 test tiles,
+[5.12](05_evaluation.md#512-why-model-3-is-its-own-model-colouring-model-1-afterwards-does-not-work)).
 
 **Confidence map** ("detail added"; [7.2](07_uncertainty.md#72-a-per-pixel-confidence-map-tested-against-the-real-error)):
 
@@ -291,7 +294,12 @@ measurement, not from the network.
 For each band $b \in \{\text{B04}, \text{B03}, \text{B02}\}$, with $A$ the 4 × 4 block mean and $m_b$ the per-pixel
 median of that band over the 8 input dates, the lock drives
 
-$$A\hat{x}_b = m_b \qquad \text{(to within 0.25 of 255 after the three correction steps).}$$
+$$A\hat{x}_b = m_b \qquad \text{(approximately, after three correction steps)}$$
+
+The residual is 0.25 of 255 on validation tiles, about 3 of 255 on the SEN2VENµS patches of
+[9.6](#96-independent-check-against-venµs-same-day-5-m-reflectance) and about 7 of 255 (0.0104 reflectance) on the
+2,800 test tiles ([5.12](05_evaluation.md#512-why-model-3-is-its-own-model-colouring-model-1-afterwards-does-not-work));
+more steps would shrink it, but at the cost of visibly softer detail, so the released model keeps three.
 
 Anything computed from 10 m block means therefore gives the same answer on the output as on the input:
 
@@ -337,7 +345,7 @@ spectral consistency, and it holds by construction. It does not make every band 
    1–255 ([`sentinel2_collector.py`](../code/collectors/sentinel2_collector.py)). Snow, white roofs and bright sand
    with reflectance above 0.3558 in a band saturate at 255, so the lock is to the clipped value, not the true
    reflectance.
-5. **The benchmark numbers are small, not zero.** The lock is iterative (0.25 of 255 left after three steps), the
+5. **The benchmark numbers are small, not zero.** The lock is iterative (0.25–7 of 255 left after three steps, depending on the scene), the
    output is clipped to 0–255, and opensr-test downsamples with its own filter rather than the exact 4 × 4 block
    mean. That is why reflectance is 0.022 in India, not 0. On spectral angle in Spain, ESA's SEN2SR (0.671°) is
    slightly closer than s2colour (0.723°), because it adds less detail.
@@ -348,3 +356,73 @@ spectral consistency, and it holds by construction. It does not make every band 
 **In one line:** s2colour can never contradict what Sentinel-2 measured in B04, B03 or B02 for a 10 m cell (within
 the stated tolerances), but the band values of each 2.39 m pixel inside that cell are still the model's best
 estimate. For quantitative work, aggregate to whole 10 m cells or larger, where the band values are the measurement.
+
+## 9.6 Independent check against VENµS (same-day 5 m reflectance)
+
+**Why this check.** Our training and test reference is ArcGIS World Imagery, an 8-bit rendered basemap captured on a
+different day. SEN2VENµS (Michel et al. 2022) is the opposite kind of reference: VENµS **surface reflectance** of
+the same place **on the same day** as the Sentinel-2 image, at 5 m. It is too coarse to train a < 4 m model on
+([1.4](01_approach_and_decisions.md#14-why-we-chose-what-we-chose)), but it is an independent test of band values,
+with no ArcGIS involved.
+
+**Data.** Site KUDALIAR, Telangana (78.58–78.87° E, 17.99–18.19° N): **215 km from the nearest training place**
+(Latur) and 75 km from the nearest test place (Hyderabad). Only the patches needed were fetched (175 MB of the 7.9 GB
+site archive, [`sen2venus_check.py`](../results/sen2venus/sen2venus_check.py)): two dates of tile 44QKF,
+2019-08-27 (monsoon, 185 patches) and 2020-10-30 (131 patches). Every October patch has some no-data pixels, so the
+scored set is the **185 August patches** (1.28 km × 1.28 km each). Script, per-patch values and figure:
+[`results/sen2venus/`](../results/sen2venus/).
+
+**Method.** Each Sentinel-2 patch (B04, B03, B02, scaled like ESA true colour) goes to the models as a single date
+repeated into the 8 input slots (the 1-date setting of [5.6](05_evaluation.md#56-what-the-8-dates-buy)). The 2.5 m
+output is averaged 2 × 2 onto VENµS's 5 m grid and compared with VENµS; bicubic from the same 10 m input is the
+baseline. The two sensors' own disagreement is measured too: VENµS averaged to 10 m against the Sentinel-2 input.
+
+### Results (185 patches, 5 m, [`results.csv`](../results/sen2venus/results.csv))
+
+| | bicubic | **s2colour** | arcgis_B |
+|---|---|---|---|
+| reflectance error vs VENµS, mean of B04/B03/B02 (L1) ↓ | 0.0043 | **0.0081** | 0.0581 |
+| &nbsp;&nbsp;B04 / B03 / B02 | 0.0051 / 0.0042 / 0.0035 | 0.0086 / 0.0082 / 0.0076 | 0.0676 / 0.0653 / 0.0413 |
+| spectral angle vs VENµS (°) ↓ | 1.64 | **2.48** | 5.60 |
+| PSNR ↑ / SSIM ↑ | 35.46 / 0.955 | 29.98 / 0.768 | 15.13 / 0.520 |
+| edge-F1 ↑ | 0.867 | 0.834 | 0.707 |
+| LPIPS ↓ | 0.053 | 0.218 | 0.344 |
+| *for scale:* Sentinel-2 vs VENµS at 10 m, the sensors' own disagreement | reflectance 0.0040, spectral angle 1.53° | | |
+
+![Kudaliar: Sentinel-2 10 m, bicubic 5 m, s2colour 5 m and 2.5 m, arcgis_B, VENµS 5 m](../results/sen2venus/examples.png)
+
+*The four patches with the most structure in VENµS, central 640 m. Columns: Sentinel-2 10 m | bicubic 5 m |
+s2colour 5 m | s2colour 2.5 m | arcgis_B 2.5 m | VENµS 5 m.*
+
+### What it shows
+
+1. **s2colour's band values agree with an independent same-day sensor.** Its B04/B03/B02 error against VENµS is
+   0.0081 reflectance, against 0.0040 for the two sensors' own disagreement: about **0.004 above the sensor floor,
+   and 7× closer than arcgis_B** (0.058), whose ArcGIS rendering is not reflectance. The spectral angle tells the
+   same story (2.48° against a 1.53° floor; arcgis_B 5.60°).
+2. **Bicubic scores best on every metric here, and it should.** This VENµS reference holds almost nothing beyond
+   10 m: averaging it to 10 m and upsampling it back reproduces it at PSNR 44.0 dB, SSIM 0.986 and edge-F1 0.946
+   ([`results.csv`](../results/sen2venus/results.csv), `venus_detail`). A reference that soft is matched best by the smooth
+   interpolation of the 10 m input, and any added detail counts as error, correct or not. It is 9.3 again, with the
+   reference itself on the blurred side. So **this check measures band values, not super-resolution**; the figure
+   shows that the structures s2colour draws (roads, field edges, the housing blocks in row 4) are where VENµS and
+   Sentinel-2 place them, but VENµS is too soft to score them.
+3. **Part of s2colour's extra error is its lock residual, and removing it costs sharpness.** On these patches the
+   lock leaves 0.0045 reflectance (about 3.1 of 255) between each 10 m block mean and the input, more than the 0.25 of
+   255 measured on validation tiles ([3.3](03_models.md#33-the-colour-lock-s2colour-only)): s2colour's raw output
+   is far off before the lock, and three correction steps do not fully converge. More steps close the gap (60 of these
+   patches: 3 steps 3.14, 6 steps 0.16, 10 steps 0.01 of 255), but they also **soften the image**: from 3 to 10 steps
+   pixels change by 3.7 of 255 on average (up to 84), the fine detail of the two versions correlates 0.97, and their
+   edges agree only at edge-F1 0.67. Each correction is spread with bicubic interpolation, and repeating it
+   progressively cancels detail at the 10 m cell scale
+   ([`lock_steps_3_vs_10.png`](../results/sen2venus/lock_steps_3_vs_10.png): 3 steps | 10 steps | difference × 10).
+   It is the same trade-off as 9.3, inside the lock: exact 10 m band values against sharp 2.39 m structure. The
+   released model keeps 3 steps, and the residual is reported instead.
+4. **The confidence map ranks VENµS error well** (AUROC 0.907, [`results.csv`](../results/sen2venus/results.csv)),
+   but this is close to built in: VENµS has almost no detail beyond 10 m, so the error against it is mostly the
+   detail the model added, which is what the map measures. The ArcGIS test in
+   [7.2](07_uncertainty.md#72-a-per-pixel-confidence-map-tested-against-the-real-error) (0.743) is the meaningful one.
+
+**Limits of this check:** one Indian site, one date, 185 patches, single-date input (the models' weaker mode), a
+10 m input grid instead of the 9.55 m the models were trained on, and Theia (MAJA) L2A processing instead of the
+Copernicus L2A the models were trained on. VENµS data: CNES/Theia, CC BY-NC 4.0; Sentinel-2 patches: Etalab 2.0.

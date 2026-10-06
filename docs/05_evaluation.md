@@ -313,7 +313,7 @@ lock inside the network**, with colour-blind losses and a high-pass discriminato
 ([3.4](03_models.md#34-losses), [4.1](04_training.md#41-lineage)), so it learns to draw detail that survives the lock.
 
 Measured on the same 2,800 in-season test tiles and 117 opensr-test chips, same 8-date input
-([`results/ablation/`](../results/ablation/): script, per-tile and per-chip CSVs, `summary.csv`, `bootstrap.csv`):
+([`results/ablation/`](../results/ablation/): script, [`results.csv`](../results/ablation/results.csv) with every mean and the bootstrap intervals, figure):
 
 | | **s2colour** (model 3) | arcgis_B + lock afterwards | arcgis_B (model 1, no lock) |
 |---|---|---|---|

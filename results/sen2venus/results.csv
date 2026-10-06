@@ -1,0 +1,60 @@
+group,quantity,value
+location,nearest train place,latur_agri
+location,nearest train place km,215.4
+location,nearest test place,hyderabad_charminar
+location,nearest test place km,74.7
+location,patch centres,"lon 78.580-78.870, lat 17.994-18.189"
+bicubic,patches,185
+bicubic,refl_l1,0.00425
+bicubic,refl_b04,0.00509
+bicubic,refl_b03,0.00416
+bicubic,refl_b02,0.00349
+bicubic,sam_deg,1.64015
+bicubic,psnr,35.45643
+bicubic,ssim,0.95493
+bicubic,cn_psnr,36.26192
+bicubic,edge_f1,0.86736
+bicubic,grad_corr,0.90072
+bicubic,lpips,0.05294
+bicubic,cn_lpips,0.05238
+s2colour,patches,185
+s2colour,refl_l1,0.00814
+s2colour,refl_b04,0.00863
+s2colour,refl_b03,0.00816
+s2colour,refl_b02,0.00764
+s2colour,sam_deg,2.47803
+s2colour,psnr,29.98043
+s2colour,ssim,0.76779
+s2colour,cn_psnr,31.25909
+s2colour,edge_f1,0.83357
+s2colour,grad_corr,0.73744
+s2colour,lpips,0.218
+s2colour,cn_lpips,0.19707
+arcgis_B,patches,185
+arcgis_B,refl_l1,0.05807
+arcgis_B,refl_b04,0.06761
+arcgis_B,refl_b03,0.0653
+arcgis_B,refl_b02,0.0413
+arcgis_B,sam_deg,5.59822
+arcgis_B,psnr,15.1323
+arcgis_B,ssim,0.52006
+arcgis_B,cn_psnr,27.34618
+arcgis_B,edge_f1,0.70736
+arcgis_B,grad_corr,0.65969
+arcgis_B,lpips,0.34361
+arcgis_B,cn_lpips,0.24104
+sensors,s2_vs_venus_10m refl_l1,0.00397
+sensors,s2_vs_venus_10m sam_deg,1.53077
+venus_detail,vs own 10m version psnr,44.04587
+venus_detail,vs own 10m version ssim,0.98574
+venus_detail,vs own 10m version edge_f1,0.94611
+s2colour_lock,"block error refl, 3 steps",0.00452
+s2colour_lock,"block error of 255, 3 steps",3.141
+s2colour_lock,"block error of 255, 6 steps",0.157
+s2colour_lock,"block error of 255, 10 steps",0.011
+s2colour_lock,3 vs 10 steps: mean pixel change of 255,3.67
+s2colour_lock,3 vs 10 steps: max pixel change of 255,84.2
+s2colour_lock,3 vs 10 steps: edge-F1 between them,0.671
+s2colour_lock,3 vs 10 steps: fine-detail correlation,0.9683
+confidence,pixels,55500
+confidence,"AUROC worst 10%, detail-added map",0.9069

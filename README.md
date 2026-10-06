@@ -151,8 +151,8 @@ samples/                 16 Sentinel-2 stacks from a test place + both models' o
 training_logs/           every run: config, full log, losses.csv, val.csv, curves.png
 results/benchmark/       every metric (CSV) and figure behind docs/05 and docs/07
 results/geospatial/      the analyses behind docs/06 (scripts, CSVs, figures)
-results/ablation/        model 3 vs model 1 + colour lock afterwards, behind docs/05 §5.12
-results/sen2venus/       the independent VENµS check behind docs/09 §9.6 (fetch + check scripts, CSVs, figure)
+results/ablation/        model 3 vs model 1 + colour lock afterwards, behind docs/05 §5.12 (script, results.csv, figure)
+results/sen2venus/       the independent VENµS check behind docs/09 §9.6 (one script, results.csv, two figures)
 results/architecture_comparison/   how the architecture was chosen: 7 published models + 11 fine-tunes, 4 sites
 data_metadata/           metadata of every tile (CSV), folder structure, samples; no images
 references/              bibliography with verified quotes; script to download the papers
